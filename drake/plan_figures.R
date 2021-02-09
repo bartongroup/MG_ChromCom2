@@ -1,10 +1,10 @@
 plan_figures <- function() {
   
-  x <- drake_plan(
-    
+  anims <- drake_plan(
+    anim_cell_1 = animate_cell(dat, "cell_1")
   )
   
   bind_rows(
-    x
+    anims
   )
 }

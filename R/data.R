@@ -6,7 +6,9 @@ read_raw_excel <- function(file) {
 
 read_raw_files <- function(files) {
   cells <- files %>% str_extract("cell\\s\\d+") %>% str_replace("\\s", "_")
-  map(files, ~read_raw_excel(.x)) %>% set_names(cells)
+  r <- map(files, ~read_raw_excel(.x)) %>% set_names(cells)
+  for(cl in cells) r[[cl]]$cell_id <- cl
+  r
 }
 
 identify_colours_ <- function(inten) {
@@ -42,7 +44,7 @@ process_raw_data <- function(r) {
   
   intensities <- full_join(ch1, ch2, by="id") %>% select(id, track_id, intensity_red, intensity_green)
   
-  track_colour <- identify_colours(intensities)
+  track_colour <- track_colours %>% filter(cell == r$cell_id) %>% select(track_id, colour)
   
   times <- r$Time %>%
     set_names("time", "unit", "cat", "time_point", "track_id", "id")
@@ -60,10 +62,11 @@ process_raw_data <- function(r) {
   
   dat <- pos %>% 
     group_by(time_point) %>% 
-    mutate(n_dot = n()) %>%
+    mutate(n_dot = n()) %>% 
     group_by(time_point, track_id) %>% 
-    mutate(dot_id = row_number()) %>% 
+    mutate(n_colour = n()) %>% 
     ungroup() %>% 
+    mutate(cell = r$cell_id) %>% 
     
     left_join(track_colour, by="track_id") %>% 
     left_join(select(times, time, id), by="id")

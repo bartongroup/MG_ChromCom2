@@ -6,5 +6,6 @@ suppressPackageStartupMessages({
   library(ggbeeswarm)
   library(ggridges)
   library(readxl)
+  library(gganimate)
   library(tidyverse)
 })
