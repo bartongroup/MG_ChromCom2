@@ -1,4 +1,5 @@
 options(dplyr.summarise.inform = FALSE)
+source("R/packages.R")
 
 files_R <- list.files("R", pattern="*.R$", full.names=TRUE)
 sr_ <- sapply(files_R, source)

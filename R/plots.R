@@ -1,3 +1,5 @@
+# plot red vs green intensity and colour identification
+# input: one cell from dat_cells
 plot_colour_identification <- function(dc) {
   mn <- min(c(dc$intensities$intensity_red, dc$intensities$intensity_green))
   mx <- max(c(dc$intensities$intensity_red, dc$intensities$intensity_green))
@@ -17,7 +19,7 @@ plot_colour_identification <- function(dc) {
 animate_cell <- function(d, cl) {
   d %>% 
     filter(cell == cl) %>% 
-    mutate(time_point = as.integer(time_point)) %>% 
+    mutate(frame = as.integer(frame)) %>% 
   ggplot(aes(x=x, y=y, fill=colour)) +
     theme_bw() +
     theme(
@@ -29,22 +31,56 @@ animate_cell <- function(d, cl) {
     ) +
     geom_point(shape=21, size=4) +
     scale_fill_manual(values=c("green", "red")) +
-    transition_time(time_point) +
+    transition_time(frame) +
     labs(title = "{frame_time}")
 }
 
-plot_state_distance <- function(st) {
-  st %>% 
-    mutate(dist_max = pmax(dist_1, dist_2, na.rm=TRUE), time = time/60) %>% 
-  ggplot(aes(x=time, y=dist_1, fill=state, shape=factor(n_dot, levels=1:4))) +
-    geom_segment(aes(xend=time, yend=0, y=dist_max), colour="grey80") +
-    geom_point(size=3, colour="grey50") +
-    scale_fill_manual(values=state_colour$colour, drop=FALSE) +
-    scale_shape_manual(values=c(20, 21, 24, 23)) +
-    geom_point(aes(y=dist_2), shape=23, size=3, colour="grey50") +
+plot_state_distance <- function(dp) {
+  dp %>% 
+    mutate(dist_max = pmax(dist_1, dist_2, na.rm=TRUE), time_nedb = time_nedb) %>% 
+  ggplot(aes(x=time_nedb, y=dist_1, fill=state, shape=factor(n_dot, levels=1:4))) +
     theme_bw() +
     theme(panel.grid = element_blank()) +
+    geom_hline(data=state_limit_tb, aes(yintercept = limit, colour=state), linetype="dotted") +
+    geom_segment(aes(xend=time_nedb, yend=0, y=dist_max), colour="grey80") +
+    geom_point(size=3, colour="grey50") +
+    scale_fill_manual(values=state_colour$colour, drop=FALSE) +
+    scale_colour_manual(values=state_colour$colour, drop=FALSE) +
+    guides(colour=FALSE) +
+    scale_shape_manual(values=c(20, 21, 24, 23)) +
+    geom_point(aes(y=dist_2), shape=23, size=3, colour="grey50") +
     facet_wrap(~cell, ncol=1) +
     scale_y_continuous(expand=expansion(mult=c(0, 0.05))) +
-    labs(x="Time (min)", y=expression(Distance~(mu * m)), shape="Num dots", colour="State")
+    labs(x="Time since NEDB (min)", y=expression(Distance~(mu * m)), shape="Num dots", colour="State")
+}
+
+plot_distance_distribution <- function(dp, cex=3) {
+  dp %>%
+    pivot_longer(cols=c(dist_1, dist_2)) %>%
+    drop_na() %>%
+    filter(n_dot>1) %>%
+  ggplot(aes(x=as_factor(n_dot), y=value, colour=state)) +
+    theme_bw() +
+    theme(
+      legend.position = "none",
+      panel.grid = element_blank()
+    ) +
+    geom_hline(data=state_limit_tb, aes(yintercept = limit, colour=state), linetype="dotted") +
+    geom_beeswarm(cex=cex) +
+    scale_colour_manual(values=state_colour$colour, drop=FALSE) +
+    labs(x="Number of dots", y="Distance")
+}
+
+plot_state_map <- function(dp) {
+  dp %>% 
+    ggplot(aes(x=time_nedb, y=cell, fill=state)) +
+    theme_bw() +
+    theme(
+      panel.grid = element_blank(),
+      legend.position = "none",
+      axis.text.y = element_blank()
+    ) +
+    geom_tile() +
+    scale_fill_manual(values=state_colour$colour, drop=FALSE) +
+    labs(x="Time since NEDB (min)", y=NULL, fill=NULL)
 }

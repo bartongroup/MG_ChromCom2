@@ -1,0 +1,121 @@
+---
+title: "Chromatin compaction - new data"
+author: "Marek Gierlinski"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    css: tabbed_notebook.css
+---
+
+```{css css_options, echo=FALSE}
+pre code, pre, code {
+  white-space: pre !important;
+  overflow-x: scroll_box() ! important; 
+  word-break: keep-all !important;
+  word-wrap: initial !important;
+}
+```
+
+```{r options, echo=FALSE}
+knitr::opts_chunk$set(
+  warning = FALSE,
+  message = FALSE,
+  echo = FALSE,
+  cache = TRUE,
+  autodep = TRUE
+)
+options(
+  width = 100,
+  knitr.table.format = "html"
+)
+```
+
+```{r libraries, cache=FALSE}
+library(drake)
+library(tidyverse)
+library(kableExtra)
+
+source("../R/plots.R")
+```
+
+Collaborators: Tomo Tanaka, John Eykelenboom
+
+[Proposal]()
+
+#  {.tabset}
+
+## Proposal
+
+This is continuation of the previous [Chromatin Compaction Modelling](http://www.compbio.dundee.ac.uk/user/mgierlinski/chromcom/doc/mod3.html) project. John is working on new data, but this time we have full 3D co-ordinates of each dot from the tracking software (which one?). The first step is to convert these co-ordinates into cell states, denoted by a colour.
+
+### Description by John
+
+Raw data for cells is in form of Excel files. There are 3 files per cell
+
+-   the whole track length [fr x - z] = frames x to z
+-   up to NEBD [fr x - y]
+-   after NEBD [fr y+1 -- z]
+
+In the case of the first file type there is no assignment of NEBD so these cells will not be automatically aligned according to our previous work. Maybe the second two file types are better; the two halves can be stitched together and then different cells aligned with each other according to the join (let me know what you think if this will work well).
+
+When I tracked the dots the objects are organised into "tracks" that always refer to either red or green (not mixed). The colour for a given track could be determined by looking at the intensities in ch.1 (red) or ch.2 (green) for the objects of the track (and compared to the intensities for the same channel in the other tracks). I could also assign the colours on the excel sheet if this would be easier (e.g. manually make a new tab with the info). [information for channel 3 and 4 are simply masked versions of 1 and 2 that I use for tracking more easily].
+
+The rules and colour coding we worked with in our previous study (distances are approx.):
+
+-   Light Blue = 2 dots (not overlapping e.g. \> 0.3 µm)
+-   Dark blue = 3 dots (where dots of the same colour have distance \< 0.75 µm)
+-   Brown = 3 dots (where dots of the same colour have distance \> 0.75 µm)
+-   Pink = 4 dots (no restriction on distance)
+-   Red = 4 dots (with 2 pairs of red/green overlapping e.g. \< 0.3 µm)
+
+Later addition:
+
+-   Black = 2 dots (overlapping e.g. \< 0.3 µm)
+
+## Colour identification
+
+Objects are organised into "tracks", that always refer to one colour, red or green. The software outputs intensities measured in two channels: red and green. Initially, I thought I could simply decide the colour of a dot based on which intensity is larger, red or green. However, some tracks have dots where green \> red or red \> green at different time points. See this example, made for cell_1. Tracks `1000000000` and `1000000101` have intensities on both sides of red=green line.
+
+```{r colour_id, fig.width=6, fig.height=4}
+readd(fig_colour_ident_cell_1)
+```
+
+For now, we use manual annotation, that is a track with given ID has a colour assigned manually by John.
+
+We need to make sure this is correct!
+
+## State identification
+
+I follow rules as outline in the proposal. They are fairly straightforward, except for the case of four dots.
+
+From John:
+
+*In the cell each green dot is linked directly to one red dot (they are on the same sister chromosome) and likewise the same green dot is not linked to one red dot. Unfortunately we cannot say unambiguously which green should match with which red as we have no way to distinguish (or our analysis so far has not been so sophisticated). In our JCB paper (you can look at Figure S1C-F) I did some measurements in a small batch of data. As you can see when I was plotting distances between red and green dots (part E) I obtained all four possible distances and put them into the two possible combinations (a & b or c & d). For the analysis and plotting I just took the shortest combined pairs of distances between red and green dots -- in the cartoon this is a and b (and discard distances c and d). For red pattern to be true, then a and b should both be less than 0.3-0.4µm (otherwise the pattern is deemed pink).*
+
+I follow this approach. I calculate distances for the two possible combination of red and green dots, and then select the combination with smaller mean distance. The state is deemed red when both distances in this combination are less than the limit.
+
+### Tracking 3 cells
+
+This figure demonstrates how state tracking works. The shapes indicate number of dots detected, the colour indicates the state. The horizontal dashed lines show the distance limits applied.
+
+```{r fig_example_tracks, fig.width=10, fig.height=6}
+readd(fig_cells_state_distance)
+```
+
+This is a more traditional look at the data:
+
+```{r fig_cells_map, fig.width=10, fig.height=1.5}
+readd(fig_cells_map)
+```
+
+What might be of interest, is the distribution of distances between dots. The next figure shows the aggregated distribution across all cells, for two, three and four dots detected. In case of four dots both distances are plotted, hence there are twice as many data points than images. Also, there are pink states below the limit (0.4 µm) - these are the cases where only one distance is below the limit.
+
+```{r fig_distance_distribution, fig.width=5, fig.height=4}
+readd(fig_cells_distance_distribution)
+```
+
+## Session info
+
+```{r session_info}
+sessionInfo()
+```

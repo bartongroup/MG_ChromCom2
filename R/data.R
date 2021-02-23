@@ -1,7 +1,9 @@
 read_raw_excel <- function(file) {
   stopifnot(file.exists(file))
+  cat(glue("\nReading {file}\n\n"))
   sheets <- excel_sheets(file)
-  map(sheets, ~read_excel(file, .x, skip=1)) %>% set_names(sheets)
+  x <- map(sheets, ~read_excel(file, .x, skip=1)) %>% set_names(sheets)
+  return(x)
 }
 
 read_raw_files <- function(files) {
@@ -47,34 +49,48 @@ process_raw_data <- function(r) {
   track_colour <- track_colours %>% filter(cell == r$cell_id) %>% select(track_id, colour)
   
   times <- r$Time %>%
-    set_names("time", "unit", "cat", "time_point", "track_id", "id")
+    set_names("time", "unit", "cat", "frame", "track_id", "id") %>% 
+    mutate(time = time / 60, unit="min")
+  
+  nedb_frame <- nedb_frames %>% 
+    filter(cell == r$cell_id) %>% 
+    pull(nedb_frame)
+  nedb_time <- times %>% 
+    filter(frame == nedb_frame) %>% 
+    select(time) %>% 
+    distinct() %>% 
+    pull(time)
+  
+  times <- times %>% 
+    mutate(time_nedb = as.integer(round(time - nedb_time)))
+  
   
   pos <-r$Position %>% 
     select(
       x = "Position X",
       y = "Position Y",
       z = "Position Z",
-      time_point = Time,
+      frame = Time,
       track_id = TrackID,
       id = ID
     ) %>% 
     mutate(track_id = as.character(as.integer(track_id)))
   
   dat <- pos %>% 
-    group_by(time_point) %>% 
+    group_by(frame) %>% 
     mutate(n_dot = n()) %>% 
-    group_by(time_point, track_id) %>% 
+    group_by(frame, track_id) %>% 
     mutate(n_colour = n()) %>% 
     ungroup() %>% 
     mutate(cell = r$cell_id) %>% 
-    
     left_join(track_colour, by="track_id") %>% 
-    left_join(select(times, time, id), by="id")
-
+    left_join(select(times, time, time_nedb, id), by="id")
+  
   list(
     dat = dat,
     pos = pos,
     times = times,
+    nedb_frame = nedb_frame,
     track_colour = track_colour,
     intensities = intensities
   )
@@ -90,4 +106,16 @@ merge_cell_data <- function(d) {
     d[[cl]]$dat %>% 
       mutate(cell = cl)
   })
+}
+
+
+process_parse_raw_data <- function(raw_dat) {
+  raw <- process_all_raw_data(raw_dat) 
+  xyz <- merge_cell_data(raw)
+  parsed <- parse_states(xyz)
+  list(
+    raw = raw,
+    xyz = xyz,
+    parsed = parsed
+  )
 }
