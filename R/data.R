@@ -50,7 +50,7 @@ process_raw_data <- function(r) {
   
   times <- r$Time %>%
     set_names("time", "unit", "cat", "frame", "track_id", "id") %>% 
-    mutate(time = time / 60, unit="min")
+    mutate(time = time / 60, unit="min", track_id = as.character(as.integer(track_id)))
   
   nedb_frame <- nedb_frames %>% 
     filter(cell == r$cell_id) %>% 

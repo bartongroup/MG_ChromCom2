@@ -8,13 +8,38 @@ plot_colour_identification <- function(dc) {
   ggplot(aes(x=intensity_green, y=intensity_red, shape=track_id, colour=colour)) +
     theme_bw() +
     theme(panel.grid = element_blank()) +
-    scale_colour_manual(values=c("green", "red")) +
+    scale_colour_manual(values=c("forestgreen", "red")) +
     geom_abline(slope=1, intercept = 0) +
     geom_point() +
     scale_x_continuous(limits=c(mn, mx)) +
     scale_y_continuous(limits=c(mn, mx))
 }
 
+plot_colour_timeline <- function(dc) {
+  d <- dc$intensities %>% 
+    left_join(dc$track_colour, by="track_id") %>%
+    left_join(dc$times, by=c("id", "track_id")) %>% 
+    mutate(intensity_diff = intensity_green - intensity_red) %>% 
+    arrange(frame, desc(intensity_diff)) %>% 
+    group_by(frame) %>% 
+    mutate(
+      good = identical(colour, sort(colour)) & n() > 1 & !(n() == 2 & first(colour) == last(colour)),
+      d_min = min(intensity_diff),
+      d_max = max(intensity_diff)
+    ) %>% 
+    ungroup()
+  d_bad <- d %>% filter(!good)
+  d_seg <- d %>% select(time_nedb, d_min, d_max) %>% distinct()
+  
+  ggplot() +
+    theme_bw() +
+    theme(panel.grid = element_blank()) +
+    geom_vline(data = d_bad, aes(xintercept = time_nedb), colour="grey90", size=3) +
+    geom_segment(data = d_seg, aes(x=time_nedb, xend=time_nedb, y=d_min, yend=d_max), colour="grey60") +
+    geom_point(data = d, aes(x=time_nedb, y=intensity_diff, shape=track_id, colour=colour)) +
+    scale_colour_manual(values=c("forestgreen", "red")) +
+    labs(x="Time since NEDB (min)", y="Intensity difference (green-red)")
+}
 
 animate_cell <- function(d, cl) {
   d %>% 
