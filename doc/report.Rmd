@@ -35,7 +35,12 @@ library(drake)
 library(tidyverse)
 library(kableExtra)
 
-source("../R/plots.R")
+myKable <- function(df, row.names=FALSE, col.names=NA, digits=2, bootstrap="condensed", font.size=12, label=NULL, caption=NULL) {
+  kable(df, format="html", row.names=row.names, col.names=col.names, digits=digits, label=label, caption=caption) %>%
+    kable_styling(bootstrap_options=bootstrap, full_width=FALSE, position="left", font_size=font.size)
+}
+
+N <- function(x) prettyNum(x, big.mark = ",")
 ```
 
 Collaborators: Tomo Tanaka, John Eykelenboom
@@ -82,7 +87,58 @@ readd(fig_colour_ident_cell_1)
 
 For now, we use manual annotation, that is a track with given ID has a colour assigned manually by John.
 
-We need to make sure this is correct!
+### Intensity difference
+
+Intensity in red and green channels can fluctuate and even a green dot can sometimes become a bit red. However, when we have two or more dots, it might be easier to assign colours by comparing them in each frame.
+
+The figure below shows the intensity difference (green - red) for each dot at each time point for cell 1.
+
+```{r colour_diff_timeline, fig.width=10, fig.height=4}
+readd(fig_colour_timeline_cell_1) 
+```
+
+Now we see that in most cases green dots have higher green-red difference than red dots, as expected. This holds true for frames around time -8 to -3 min, where red dots have positive green-red: green dots are always greener.
+
+There are a few issues with this. They are marked with grey boxes. There are a few types of issues and I discuss them here, by looking at raw data.
+
+#### -30 min
+
+There is only one green dot in the figure. Here is some raw data from this frame.
+
+```{r raw_m30}
+r <- readd(raw_ex_cell1_m30)
+myKable(r$Position, caption="Position")
+myKable(r$`Intensity Median Ch=1 Img=1`, caption="Intensity Median Ch=1 Img=1")
+myKable(r$`Intensity Median Ch=2 Img=1`, caption="Intensity Median Ch=2 Img=1")
+```
+
+There are two dots in the `Position` sheet, but only one in intensity sheets, for red and green channels. Intensity data for track `1000000000` is missing in both channels.
+
+#### -25 min
+
+Here we have two red dots in the plot.
+
+```{r raw_m25}
+r <- readd(raw_ex_cell1_m25)
+myKable(r$Position, caption="Position")
+myKable(r$`Intensity Median Ch=1 Img=1`, caption="Intensity Median Ch=1 Img=1")
+myKable(r$`Intensity Median Ch=2 Img=1`, caption="Intensity Median Ch=2 Img=1")
+```
+
+Just like above, intensity data from track `1000000001` is missing. There are two dots with measured position, byt only one of them has measured intensities.
+
+#### +5 min
+
+This is an interesting case.
+
+```{r raw_p5}
+r <- readd(raw_ex_cell1_p5)
+myKable(r$Position, caption="Position")
+myKable(r$`Intensity Median Ch=1 Img=1`, caption="Intensity Median Ch=1 Img=1")
+myKable(r$`Intensity Median Ch=2 Img=1`, caption="Intensity Median Ch=2 Img=1")
+```
+
+There are four dots in position and intensity, but intensities of dots in rows 2 and 3 are identical, in each channel. It looks like maybe a dot intensity was missing, but it was replaced with an intensity from another dot. As a result, we have a red dot with green intensity way too large than it should be.
 
 ## State identification
 

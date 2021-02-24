@@ -12,8 +12,15 @@ plan_figures <- function() {
     fig_cells_map = plot_state_map(dat$parsed)
   )
   
+  raw_examples <- drake_plan(
+    raw_ex_cell1_m30 = get_timepoint_raw_data(raw, dat$xyz, "cell_1", -30),
+    raw_ex_cell1_m25 = get_timepoint_raw_data(raw, dat$xyz, "cell_1", -25),
+    raw_ex_cell1_p5 = get_timepoint_raw_data(raw, dat$xyz, "cell_1", 5)
+  )
+  
   bind_rows(
     anims,
-    cells
+    cells,
+    raw_examples
   )
 }

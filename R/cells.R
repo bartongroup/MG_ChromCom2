@@ -1,6 +1,9 @@
 # ds - data frame with two rows and columns x, y, z
-# finds distance between rows
-dist_xyz <- function(d) {
+# value - distance between rows
+# Correction to z coordinates due to different refraction in oil-based objective
+# and water-based medium with cells
+dist_xyz <- function(d, z_correction = 0.85) {
+  d$z <- d$z * z_correction
   r <- as.matrix(d[, c("x", "y", "z")])
   sqrt(sum((r[2,] - r[1,])^2))
 }
@@ -20,6 +23,9 @@ parse_one_state <- function(ds, dist.lightblue, dist.brown, dist.pink) {
   } else if(n_dots == 2) {
     dst <- dist_xyz(ds)
     state <- ifelse(dst > dist.lightblue, "lightblue", "black")
+    # sometimes we see two dots with the same colour
+    clr <- ds$colour
+    if(clr[1] == clr[2]) state <- "none"
   } else if(n_dots == 3) {
     dsel <- ds %>% 
       filter(n_colour == 2)
@@ -91,4 +97,16 @@ convert_to_chrcom3 <- function(dat) {
   tim <- colnames(tdat) %>% as.numeric()
   
   echr <- ChromCom3(pars, time=tim, cells=tdat, colours=unique(dat$parsed$letter))
+}
+
+
+get_timepoint_raw_data <- function(rw, xyz, cll, tim) {
+  ids <- xyz %>% 
+    filter(cell == cll & time_nedb == tim) %>% 
+    pull(id)
+  sheets <- c("Time", "Position", "Intensity Median Ch=1 Img=1", "Intensity Median Ch=2 Img=1")
+  map(sheets, function(sheet) {
+    rw[[cll]][[sheet]] %>% filter(ID %in% ids) %>% mutate(TrackID = as.character(as.integer(TrackID)))
+  }) %>% 
+    set_names(sheets)
 }

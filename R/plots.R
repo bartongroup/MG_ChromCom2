@@ -1,3 +1,11 @@
+make_time_ticks <- function(val.min=-200, val.max=200, lab.step=5) {
+  time_breaks <- seq(val.min, val.max, 1)
+  time_labels <- rep("", length(time_breaks))
+  idx <- seq(1, length(time_breaks), lab.step)
+  time_labels[idx] <- time_breaks[idx]
+  list(breaks = time_breaks, labels = time_labels)
+}
+
 # plot red vs green intensity and colour identification
 # input: one cell from dat_cells
 plot_colour_identification <- function(dc) {
@@ -16,6 +24,7 @@ plot_colour_identification <- function(dc) {
 }
 
 plot_colour_timeline <- function(dc) {
+  tcks <- make_time_ticks()
   d <- dc$intensities %>% 
     left_join(dc$track_colour, by="track_id") %>%
     left_join(dc$times, by=c("id", "track_id")) %>% 
@@ -34,10 +43,12 @@ plot_colour_timeline <- function(dc) {
   ggplot() +
     theme_bw() +
     theme(panel.grid = element_blank()) +
+    geom_hline(yintercept = 0, colour="blue", alpha=0.3, linetype="dashed") +
     geom_vline(data = d_bad, aes(xintercept = time_nedb), colour="grey90", size=3) +
     geom_segment(data = d_seg, aes(x=time_nedb, xend=time_nedb, y=d_min, yend=d_max), colour="grey60") +
     geom_point(data = d, aes(x=time_nedb, y=intensity_diff, shape=track_id, colour=colour)) +
     scale_colour_manual(values=c("forestgreen", "red")) +
+    scale_x_continuous(breaks = tcks$breaks, labels = tcks$labels) +
     labs(x="Time since NEDB (min)", y="Intensity difference (green-red)")
 }
 
