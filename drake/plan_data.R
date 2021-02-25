@@ -2,7 +2,7 @@ plan_data <- function() {
   
   get_data <- drake_plan(
     raw = read_raw_files(input_files),
-    dat = process_parse_raw_data(raw) 
+    dat = process_parse_raw_data(raw, int.sel = "Median") 
   )
   
   bind_rows(

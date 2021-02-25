@@ -37,7 +37,7 @@ track_colours <- tribble(
 
 state_colour <- tribble(
   ~state, ~colour, ~letter,
-  "none", "grey70", "N",
+  "none", "grey70", "-",
   "black", "black", "K",
   "lightblue", "skyblue", "L",
   "darkblue", "mediumblue", "B",

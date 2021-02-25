@@ -91,7 +91,8 @@ For now, we use manual annotation, that is a track with given ID has a colour as
 
 Intensity in red and green channels can fluctuate and even a green dot can sometimes become a bit red. However, when we have two or more dots, it might be easier to assign colours by comparing them in each frame.
 
-The figure below shows the intensity difference (green - red) for each dot at each time point for cell 1.
+The figure below shows the intensity difference (green - red) for each dot at each time point for cell 1. The letters at the bottom indicate the state (L-light blue, B-dark blue, K-black, W-brown, P-pink, R-red). The digits show the number of points in the XYZ data. Bold font indicates missing points in intensity data.
+
 
 ```{r colour_diff_timeline, fig.width=10, fig.height=4}
 readd(fig_colour_timeline_cell_1) 

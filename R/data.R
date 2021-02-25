@@ -28,19 +28,19 @@ identify_colours <- function(inten) {
     filter(track_id %in% tracks)
 }
 
-process_raw_data <- function(r) {
+process_raw_data <- function(r, int.sel) {
  
-  ch1 <- r$`Intensity Median Ch=1 Img=1` %>% 
+  ch1 <- r[[glue("Intensity {int.sel} Ch=1 Img=1")]] %>% 
     select(
-      intensity_red = "Intensity Median",
+      intensity_red = glue("Intensity {int.sel}"),
       track_id = TrackID,
       id = ID
     ) %>% 
     mutate(track_id = as.character(as.integer(track_id))) 
   
-  ch2 <- r$`Intensity Median Ch=2 Img=1` %>% 
+  ch2 <- r[[glue("Intensity {int.sel} Ch=2 Img=1")]] %>% 
     select(
-      intensity_green = "Intensity Median",
+      intensity_green = glue("Intensity {int.sel}"),
       id = ID
     ) 
   
@@ -96,8 +96,8 @@ process_raw_data <- function(r) {
   )
 }
 
-process_all_raw_data <- function(raw) {
-  map(raw, ~process_raw_data(.x))
+process_all_raw_data <- function(raw, int.sel) {
+  map(raw, ~process_raw_data(.x, int.sel))
 }
 
 
@@ -109,8 +109,8 @@ merge_cell_data <- function(d) {
 }
 
 
-process_parse_raw_data <- function(raw_dat) {
-  raw <- process_all_raw_data(raw_dat) 
+process_parse_raw_data <- function(raw_dat, int.sel = "Median") {
+  raw <- process_all_raw_data(raw_dat, int.sel) 
   xyz <- merge_cell_data(raw)
   parsed <- parse_states(xyz)
   list(

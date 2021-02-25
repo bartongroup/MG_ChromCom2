@@ -23,7 +23,13 @@ plot_colour_identification <- function(dc) {
     scale_y_continuous(limits=c(mn, mx))
 }
 
-plot_colour_timeline <- function(dc) {
+# Look at intensity data in time
+# Compare to parsed positional data
+# Highlight disparities
+plot_colour_timeline <- function(dat, cll) {
+  dc <- dat$raw[[cll]]
+  dp <- dat$parsed %>% filter(cell == cll)
+  
   tcks <- make_time_ticks()
   d <- dc$intensities %>% 
     left_join(dc$track_colour, by="track_id") %>%
@@ -39,6 +45,13 @@ plot_colour_timeline <- function(dc) {
     ungroup()
   d_bad <- d %>% filter(!good)
   d_seg <- d %>% select(time_nedb, d_min, d_max) %>% distinct()
+  min_d <- min(d$intensity_diff)
+  
+  dsum <- d %>% 
+    group_by(time_nedb) %>% 
+    tally() %>% 
+    left_join(dp, by="time_nedb") %>% 
+    mutate(ff = if_else(n == n_dot, "plain", "bold"))
   
   ggplot() +
     theme_bw() +
@@ -47,6 +60,8 @@ plot_colour_timeline <- function(dc) {
     geom_vline(data = d_bad, aes(xintercept = time_nedb), colour="grey90", size=3) +
     geom_segment(data = d_seg, aes(x=time_nedb, xend=time_nedb, y=d_min, yend=d_max), colour="grey60") +
     geom_point(data = d, aes(x=time_nedb, y=intensity_diff, shape=track_id, colour=colour)) +
+    geom_text(data = dsum, aes(x=time_nedb, y=min_d, label=letter), vjust=0.6) +
+    geom_text(data = dsum, aes(x=time_nedb, y=min_d, label=n_dot, fontface=ff), vjust=-0.6) +
     scale_colour_manual(values=c("forestgreen", "red")) +
     scale_x_continuous(breaks = tcks$breaks, labels = tcks$labels) +
     labs(x="Time since NEDB (min)", y="Intensity difference (green-red)")
