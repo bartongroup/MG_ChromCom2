@@ -13,9 +13,9 @@ plan_figures <- function() {
   )
   
   raw_examples <- drake_plan(
-    raw_ex_cell1_m30 = get_timepoint_raw_data(raw, dat$xyz, "TT206", 1, -30),
-    raw_ex_cell1_m25 = get_timepoint_raw_data(raw, dat$xyz, "TT206", 1, -25),
-    raw_ex_cell1_p5 = get_timepoint_raw_data(raw, dat$xyz, "TT206", 1, 5)
+    raw_ex_cell1_m31 = get_timepoint_raw_data(raw, dat$xyz, "TT206", 1, -31),
+    raw_ex_cell1_m13 = get_timepoint_raw_data(raw, dat$xyz, "TT206", 1, -13),
+    raw_ex_cell1_p6 = get_timepoint_raw_data(raw, dat$xyz, "TT206", 1, 6)
   )
   
   bind_rows(

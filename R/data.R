@@ -10,6 +10,7 @@ get_metadata <- function(path) {
       cell = name %>% str_extract("cell\\s\\d+") %>% str_remove("cell\\s") %>% as.integer(),
       condition = name %>% str_extract("^\\w+_") %>% str_remove("_") %>% as_factor(),
       cell_file = file.path(path, glue("{name}.xlsx")),
+      cache_file = file.path("cache", glue("{name}.rds")),
       trackid_file = file.path(path, glue("{name}_trackid.xlsx")),
       nebd_file = file.path(path, glue("{name}_frameNEBD.xlsx"))
     )
@@ -19,16 +20,22 @@ get_metadata <- function(path) {
 # Warning: original "xls" file does not work,
 # needs to be converted into "xlsx"
 # Returns named list of sheets
-read_excel_cell <- function(file) {
-  stopifnot(file.exists(file))
-  cat(glue("\nReading {file}\n\n"))
-  sheets <- excel_sheets(file)
-  x <- map(sheets, ~read_excel(file, .x, skip=1)) %>% set_names(sheets)
+read_excel_cell <- function(excel_file, cache_file) {
+  stopifnot(file.exists(excel_file))
+  if(file.exists(cache_file)) {
+    cat(glue("\nReading {cache_file}\n\n"))
+    x <- read_rds(cache_file)
+  } else {
+    cat(glue("\nReading {excel_file}\n\n"))
+    sheets <- excel_sheets(excel_file)
+    x <- map(sheets, ~read_excel(excel_file, .x, skip=1)) %>% set_names(sheets)
+    write_rds(x, cache_file)
+  }
   return(x)
 }
 
 read_cells <- function(meta) {
-  cls <- map(meta$cell_file, ~read_excel_cell(.x)) %>% set_names(meta$name)
+  cls <- map2(meta$cell_file, meta$cache_file, ~read_excel_cell(.x, .y)) %>% set_names(meta$name)
   trids <- map_dfr(meta$trackid_file, ~read_excel(.x)) %>% set_names(c("name", "track_id", "colour")) %>%
     mutate(track_id = as.character(as.integer(track_id)))
   nebds <- map_dfr(meta$nebd_file, ~read_excel(.x)) %>% set_names(c("name", "nebd_frame"))
