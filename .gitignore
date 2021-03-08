@@ -3,5 +3,9 @@
 .RData
 .Ruserdata
 .drake
+.DS_Store
 doc/report_cache/
-doc/report_files
+doc/report_files/
+data
+data_old
+data_original
