@@ -26,9 +26,10 @@ plot_colour_identification <- function(dc) {
 # Look at intensity data in time
 # Compare to parsed positional data
 # Highlight disparities
-plot_colour_timeline <- function(dat, cll) {
-  dc <- dat$raw[[cll]]
-  dp <- dat$parsed %>% filter(cell == cll)
+plot_colour_timeline <- function(dat, cond, cll) {
+  nm <- dat$metadata %>% filter(condition == cond & cell == cll) %>% pull(name) %>% as.character()
+  dc <- dat$celldat[[nm]]
+  dp <- dat$parsed %>% filter(name == nm)
   
   tcks <- make_time_ticks()
   d <- dc$intensities %>% 
@@ -44,27 +45,27 @@ plot_colour_timeline <- function(dat, cll) {
     ) %>% 
     ungroup()
   d_bad <- d %>% filter(!good)
-  d_seg <- d %>% select(time_nedb, d_min, d_max) %>% distinct()
+  d_seg <- d %>% select(time_nebd, d_min, d_max) %>% distinct()
   min_d <- min(d$intensity_diff)
   
   dsum <- d %>% 
-    group_by(time_nedb) %>% 
+    group_by(time_nebd) %>% 
     tally() %>% 
-    left_join(dp, by="time_nedb") %>% 
+    left_join(dp, by="time_nebd") %>% 
     mutate(ff = if_else(n == n_dot, "plain", "bold"))
   
   ggplot() +
     theme_bw() +
     theme(panel.grid = element_blank()) +
     geom_hline(yintercept = 0, colour="blue", alpha=0.3, linetype="dashed") +
-    geom_vline(data = d_bad, aes(xintercept = time_nedb), colour="grey90", size=3) +
-    geom_segment(data = d_seg, aes(x=time_nedb, xend=time_nedb, y=d_min, yend=d_max), colour="grey60") +
-    geom_point(data = d, aes(x=time_nedb, y=intensity_diff, shape=track_id, colour=colour)) +
-    geom_text(data = dsum, aes(x=time_nedb, y=min_d, label=letter), vjust=0.6) +
-    geom_text(data = dsum, aes(x=time_nedb, y=min_d, label=n_dot, fontface=ff), vjust=-0.6) +
+    geom_vline(data = d_bad, aes(xintercept = time_nebd), colour="grey90", size=3) +
+    geom_segment(data = d_seg, aes(x=time_nebd, xend=time_nebd, y=d_min, yend=d_max), colour="grey60") +
+    geom_point(data = d, aes(x=time_nebd, y=intensity_diff, shape=track_id, colour=colour)) +
+    geom_text(data = dsum, aes(x=time_nebd, y=min_d, label=letter), vjust=0.6) +
+    geom_text(data = dsum, aes(x=time_nebd, y=min_d, label=n_dot, fontface=ff), vjust=-0.6) +
     scale_colour_manual(values=c("forestgreen", "red")) +
     scale_x_continuous(breaks = tcks$breaks, labels = tcks$labels) +
-    labs(x="Time since NEDB (min)", y="Intensity difference (green-red)")
+    labs(x="Time since nebd (min)", y="Intensity difference (green-red)")
 }
 
 animate_cell <- function(d, cl) {
@@ -88,12 +89,12 @@ animate_cell <- function(d, cl) {
 
 plot_state_distance <- function(dp) {
   dp %>% 
-    mutate(dist_max = pmax(dist_1, dist_2, na.rm=TRUE), time_nedb = time_nedb) %>% 
-  ggplot(aes(x=time_nedb, y=dist_1, fill=state, shape=factor(n_dot, levels=1:4))) +
+    mutate(dist_max = pmax(dist_1, dist_2, na.rm=TRUE), time_nebd = time_nebd) %>% 
+  ggplot(aes(x=time_nebd, y=dist_1, fill=state, shape=factor(n_dot, levels=1:4))) +
     theme_bw() +
     theme(panel.grid = element_blank()) +
     geom_hline(data=state_limit_tb, aes(yintercept = limit, colour=state), linetype="dotted") +
-    geom_segment(aes(xend=time_nedb, yend=0, y=dist_max), colour="grey80") +
+    geom_segment(aes(xend=time_nebd, yend=0, y=dist_max), colour="grey80") +
     geom_point(size=3, colour="grey50") +
     scale_fill_manual(values=state_colour$colour, drop=FALSE) +
     scale_colour_manual(values=state_colour$colour, drop=FALSE) +
@@ -102,11 +103,12 @@ plot_state_distance <- function(dp) {
     geom_point(aes(y=dist_2), shape=23, size=3, colour="grey50") +
     facet_wrap(~cell, ncol=1) +
     scale_y_continuous(expand=expansion(mult=c(0, 0.05))) +
-    labs(x="Time since NEDB (min)", y=expression(Distance~(mu * m)), shape="Num dots", colour="State")
+    labs(x="Time since nebd (min)", y=expression(Distance~(mu * m)), shape="Num dots", colour="State")
 }
 
 plot_distance_distribution <- function(dp, cex=3) {
   dp %>%
+    select(condition, cell, n_dot, state, dist_1, dist_2) %>% 
     pivot_longer(cols=c(dist_1, dist_2)) %>%
     drop_na() %>%
     filter(n_dot>1) %>%
@@ -124,7 +126,7 @@ plot_distance_distribution <- function(dp, cex=3) {
 
 plot_state_map <- function(dp) {
   dp %>% 
-    ggplot(aes(x=time_nedb, y=cell, fill=state)) +
+    ggplot(aes(x=time_nebd, y=cell, fill=state)) +
     theme_bw() +
     theme(
       panel.grid = element_blank(),
@@ -133,5 +135,5 @@ plot_state_map <- function(dp) {
     ) +
     geom_tile() +
     scale_fill_manual(values=state_colour$colour, drop=FALSE) +
-    labs(x="Time since NEDB (min)", y=NULL, fill=NULL)
+    labs(x="Time since nebd (min)", y=NULL, fill=NULL)
 }

@@ -1,7 +1,8 @@
 plan_data <- function() {
   
   get_data <- drake_plan(
-    raw = read_raw_files(input_files),
+    metadata = get_metadata("data"),
+    raw = read_cells(metadata),
     dat = process_parse_raw_data(raw, int.sel = "Median") 
   )
   

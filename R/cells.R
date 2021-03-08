@@ -54,14 +54,16 @@ parse_one_state <- function(ds, dist.lightblue, dist.brown, dist.pink) {
   }
   
   tibble(
+    name = ds$name[1],
+    condition = ds$condition[1],
+    cell = ds$cell[1],
     frame = ds$frame[1],
     time = ds$time[1],
-    time_nedb = ds$time_nedb[1],
+    time_nebd = ds$time_nebd[1],
     n_dot = n_dots,
     dist_1 = dst1,
     dist_2 = dst2,
-    state = state,
-    cell = ds$cell[1]
+    state = state
   )
 }
 
@@ -73,7 +75,7 @@ parse_states <- function(xyz, dist.lightblue = NULL, dist.brown = NULL, dist.pin
   if(is.null(dist.pink)) dist.pink <- state_limit["pink"]
   
   xyz %>% 
-    group_split(cell, frame) %>% 
+    group_split(name, frame, cell, condition) %>% 
     map_dfr(~parse_one_state(.x, dist.lightblue, dist.brown, dist.pink)) %>% 
     left_join(state_colour %>% select(state, letter), by="state") %>% 
     mutate(
@@ -90,8 +92,8 @@ convert_to_chrcom3 <- function(dat) {
     mutate(
       letter = as.character(letter)
     ) %>% 
-    arrange(time_nedb) %>% 
-    pivot_wider(id_cols=cell, names_from=time_nedb, values_from=letter) %>% 
+    arrange(time_nebd) %>% 
+    pivot_wider(id_cols=cell, names_from=time_nebd, values_from=letter) %>% 
     select(-cell) %>% 
     as.matrix()
   tim <- colnames(tdat) %>% as.numeric()
@@ -100,13 +102,16 @@ convert_to_chrcom3 <- function(dat) {
 }
 
 
-get_timepoint_raw_data <- function(rw, xyz, cll, tim) {
+get_timepoint_raw_data <- function(rw, xyz, cond, cll, tim) {
+  nm <- rw$metadata %>% 
+    filter(condition == cond & cell == cll) %>% 
+    pull(name)
   ids <- xyz %>% 
-    filter(cell == cll & time_nedb == tim) %>% 
+    filter(name == nm & time_nebd == tim) %>% 
     pull(id)
   sheets <- c("Time", "Position", "Intensity Median Ch=1 Img=1", "Intensity Median Ch=2 Img=1")
   map(sheets, function(sheet) {
-    rw[[cll]][[sheet]] %>% filter(ID %in% ids) %>% mutate(TrackID = as.character(as.integer(TrackID)))
+    rw$cells[[nm]][[sheet]] %>% filter(ID %in% ids) %>% mutate(TrackID = as.character(as.integer(TrackID)))
   }) %>% 
     set_names(sheets)
 }
