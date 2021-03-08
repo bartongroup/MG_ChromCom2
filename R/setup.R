@@ -12,7 +12,7 @@ state_colour <- tribble(
   mutate(state = as_factor(state))
 
 state_limit <- c(
-  "lightblue" = 0.3,
+  "lightblue" = 0.0,  # for now; black should take into account five consecutive states
   "brown" = 0.75,
   "pink"=  0.4
 )
