@@ -86,13 +86,22 @@ animate_cell <- function(d, cl) {
     labs(title = "{frame_time}")
 }
 
-plot_state_distance <- function(dp) {
+make_state_limit_tb <- function(params) {
+  pr <- params %>% unlist()
+  tibble(
+    name = names(pr),
+    limit = pr
+  ) %>% 
+    separate(name, c("dummy", "state"))
+}
+
+plot_state_distance <- function(dp, params) {
   dp %>% 
     mutate(dist_max = pmax(dist_1, dist_2, na.rm=TRUE), time_nebd = time_nebd) %>% 
   ggplot(aes(x=time_nebd, y=dist_1, fill=state, shape=factor(n_dot, levels=1:4))) +
     theme_bw() +
     theme(panel.grid = element_blank()) +
-    geom_hline(data=state_limit_tb, aes(yintercept = limit, colour=state), linetype="dotted") +
+    geom_hline(data=make_state_limit_tb(params), aes(yintercept = limit, colour=state), linetype="dotted") +
     geom_segment(aes(xend=time_nebd, yend=0, y=dist_max), colour="grey80") +
     geom_point(size=3, colour="grey50") +
     scale_fill_manual(values=state_colour$colour, drop=FALSE) +
@@ -105,7 +114,7 @@ plot_state_distance <- function(dp) {
     labs(x="Time since nebd (min)", y=expression(Distance~(mu * m)), shape="Num dots", colour="State")
 }
 
-plot_distance_distribution <- function(dp, cex=3) {
+plot_distance_distribution <- function(dp, params, cex=3) {
   dp %>%
     select(condition, cell, n_dot, state, dist_1, dist_2) %>% 
     pivot_longer(cols=c(dist_1, dist_2)) %>%
@@ -117,7 +126,7 @@ plot_distance_distribution <- function(dp, cex=3) {
       legend.position = "none",
       panel.grid = element_blank()
     ) +
-    geom_hline(data=state_limit_tb, aes(yintercept = limit, colour=state), linetype="dotted") +
+    geom_hline(data=make_state_limit_tb(params), aes(yintercept = limit, colour=state), linetype="dotted") +
     geom_beeswarm(cex=cex) +
     scale_colour_manual(values=state_colour$colour, drop=FALSE) +
     labs(x="Number of dots", y="Distance")

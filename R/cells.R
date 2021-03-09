@@ -66,12 +66,7 @@ parse_one_state <- function(ds, dist.lightblue, dist.brown, dist.pink) {
 }
 
 # parse states from xyz data
-parse_states <- function(xyz, dist.lightblue = NULL, dist.brown = NULL, dist.pink = NULL) {
-  
-  if(is.null(dist.lightblue)) dist.lightblue <- state_limit["lightblue"]
-  if(is.null(dist.brown)) dist.brown <- state_limit["brown"]
-  if(is.null(dist.pink)) dist.pink <- state_limit["pink"]
-  
+parse_states <- function(xyz, dist.lightblue = 0, dist.brown = 0.75, dist.pink = 0.4) {
   xyz %>% 
     group_split(cell_id, frame) %>% 
     map_dfr(~parse_one_state(.x, dist.lightblue, dist.brown, dist.pink)) %>% 
