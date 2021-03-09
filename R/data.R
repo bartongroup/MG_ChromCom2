@@ -1,19 +1,19 @@
 # Extract cell names from files,
-# based on trackid files
+# based on info files
 get_metadata <- function(path) {
-  names <- dir(path, pattern="*trackid.xlsx") %>% 
-    str_remove("_trackid.xlsx")
-  tibble(
-    name = as_factor(names)
-  ) %>% 
+  files <- dir(path, pattern="*info.xlsx", full.names=FALSE)
+  map_dfr(files, function(f) {
+    d <- read_excel(file.path(path, f))
+  }) %>% 
+    set_names(c("name", "nebd_frame", "condition", "cell")) %>% 
+    unite("cell_id", c(condition, cell), remove=FALSE, sep="_") %>% 
     mutate(
-      cell = name %>% str_extract("cell\\s\\d+") %>% str_remove("cell\\s") %>% as.integer(),
-      condition = name %>% str_extract("^\\w+_") %>% str_remove("_") %>% as_factor(),
       cell_file = file.path(path, glue("{name}.xlsx")),
       cache_file = file.path("cache", glue("{name}.rds")),
       trackid_file = file.path(path, glue("{name}_trackid.xlsx")),
-      nebd_file = file.path(path, glue("{name}_frameNEBD.xlsx"))
-    )
+      info_file = file.path(path, glue("{name}_info.xlsx"))
+    ) %>% 
+    mutate_at(vars(name, condition), as_factor)
 }
 
 # Read main Excel sheet with cell data
@@ -35,15 +35,14 @@ read_excel_cell <- function(excel_file, cache_file) {
 }
 
 read_cells <- function(meta) {
-  cls <- map2(meta$cell_file, meta$cache_file, ~read_excel_cell(.x, .y)) %>% set_names(meta$name)
+  cls <- map2(meta$cell_file, meta$cache_file, ~read_excel_cell(.x, .y)) %>% set_names(meta$cell_id)
   trids <- map_dfr(meta$trackid_file, ~read_excel(.x)) %>% set_names(c("name", "track_id", "colour")) %>%
-    mutate(track_id = as.character(as.integer(track_id)))
-  nebds <- map_dfr(meta$nebd_file, ~read_excel(.x)) %>% set_names(c("name", "nebd_frame"))
+    mutate(track_id = as.character(as.integer(track_id))) %>% 
+    left_join(select(meta, name, cell_id), by="name")
   list(
     metadata = meta,
     cells = cls,
-    track_ids = trids,
-    nebd_frames = nebds
+    track_ids = trids
   )
 }
 
@@ -55,11 +54,10 @@ identify_colours <- function(inten) {
 }
 
 # Process raw data from one cell.
-# r is raw excell data (by sheets)
+# r is raw excel data from one cell file
 # int.sel is intensity selection (e.g. "Median")
 # track_ids = track_id data
-# nebd_frames = NEBD frame data
-process_raw_data <- function(r, cell_name, int.sel, track_ids, nebd_frames, meta) {
+process_raw_data <- function(r, cell.id, int.sel, track_ids, meta) {
  
   ch1 <- r[[glue("Intensity {int.sel} Ch=1 Img=1")]] %>% 
     select(
@@ -77,33 +75,32 @@ process_raw_data <- function(r, cell_name, int.sel, track_ids, nebd_frames, meta
   
   intensities <- full_join(ch1, ch2, by="id") %>% select(id, track_id, intensity_red, intensity_green)
   
-  track_colour <- track_ids %>% filter(name == cell_name) %>% select(track_id, colour)
+  track_colour <- track_ids %>% filter(cell_id == cell.id) %>% select(track_id, colour)
   
   times <- r$Time %>%
     set_names("time", "unit", "cat", "frame", "track_id", "id") %>% 
     mutate(time = time / 60, unit="min", track_id = as.character(as.integer(track_id)))
   
-  nebd_frame <- nebd_frames %>% 
-    filter(name == cell_name) %>% 
-    pull(nebd_frame)
+  this_meta <- meta %>% filter(cell_id == cell.id)
+  
+  nebd_frame <- this_meta %>% pull(nebd_frame)
+  
   nebd_time <- times %>% 
     filter(frame == nebd_frame) %>% 
     select(time) %>% 
     distinct() %>% 
     pull(time)
   
-  this_meta <- meta %>% filter(name == cell_name)
-
   times <- times %>% 
     mutate(time_nebd = as.integer(round(time - nebd_time)))
   
   
   pos <-r$Position %>% 
     select(
+      frame = Time,
       x = "Position X",
       y = "Position Y",
       z = "Position Z",
-      frame = Time,
       track_id = TrackID,
       id = ID
     ) %>% 
@@ -127,29 +124,31 @@ process_raw_data <- function(r, cell_name, int.sel, track_ids, nebd_frames, meta
     track_colour = track_colour,
     intensities = intensities,
     cell = this_meta$cell,
-    condition = this_meta$condition
+    condition = this_meta$condition,
+    cell_id = cell.id
   )
 }
 
 process_all_raw_data <- function(raw, int.sel) {
-  names <- raw$metadata$name
-  map(names, ~process_raw_data(raw$cells[[.x]], .x, int.sel, raw$track_ids, raw$nebd_frames, raw$metadata)) %>% 
-    set_names(names)
+  cells <- raw$metadata$cell_id
+  map(cells, ~process_raw_data(raw$cells[[.x]], .x, int.sel, raw$track_ids, raw$metadata)) %>% 
+    set_names(cells)
 }
 
 
 merge_cell_data <- function(d) {
-  map_dfr(names(d), function(nm) {
-    d[[nm]]$dat %>% 
-      mutate(name = nm, cell = d[[nm]]$cell, condition = d[[nm]]$condition)
+  map_dfr(names(d), function(cellid) {
+    d[[cellid]]$dat %>% 
+      mutate(cell_id = cellid, .before=1)
   })
 }
 
 
 process_parse_raw_data <- function(raw, int.sel = "Median") {
+  md <- raw$metadata %>% select(cell_id, condition, cell)
   celldat <- process_all_raw_data(raw, int.sel) 
-  xyz <- merge_cell_data(celldat)
-  parsed <- parse_states(xyz)
+  xyz <- merge_cell_data(celldat) %>% left_join(md, by="cell_id")
+  parsed <- parse_states(xyz) %>% left_join(md, by="cell_id")
   list(
     metadata = raw$metadata,
     celldat = celldat,

@@ -54,9 +54,7 @@ parse_one_state <- function(ds, dist.lightblue, dist.brown, dist.pink) {
   }
   
   tibble(
-    name = ds$name[1],
-    condition = ds$condition[1],
-    cell = ds$cell[1],
+    cell_id = ds$cell_id[1],
     frame = ds$frame[1],
     time = ds$time[1],
     time_nebd = ds$time_nebd[1],
@@ -75,7 +73,7 @@ parse_states <- function(xyz, dist.lightblue = NULL, dist.brown = NULL, dist.pin
   if(is.null(dist.pink)) dist.pink <- state_limit["pink"]
   
   xyz %>% 
-    group_split(name, frame, cell, condition) %>% 
+    group_split(cell_id, frame) %>% 
     map_dfr(~parse_one_state(.x, dist.lightblue, dist.brown, dist.pink)) %>% 
     left_join(state_colour %>% select(state, letter), by="state") %>% 
     mutate(
@@ -102,16 +100,13 @@ convert_to_chrcom3 <- function(dat) {
 }
 
 
-get_timepoint_raw_data <- function(rw, xyz, cond, cll, tim) {
-  nm <- rw$metadata %>% 
-    filter(condition == cond & cell == cll) %>% 
-    pull(name)
+get_timepoint_raw_data <- function(rw, xyz, cellid, tim) {
   ids <- xyz %>% 
-    filter(name == nm & time_nebd == tim) %>% 
+    filter(cell_id == cellid & time_nebd == tim) %>% 
     pull(id)
   sheets <- c("Time", "Position", "Intensity Median Ch=1 Img=1", "Intensity Median Ch=2 Img=1")
   map(sheets, function(sheet) {
-    rw$cells[[nm]][[sheet]] %>% filter(ID %in% ids) %>% mutate(TrackID = as.character(as.integer(TrackID)))
+    rw$cells[[cellid]][[sheet]] %>% filter(ID %in% ids) %>% mutate(TrackID = as.character(as.integer(TrackID)))
   }) %>% 
     set_names(sheets)
 }

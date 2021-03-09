@@ -26,10 +26,9 @@ plot_colour_identification <- function(dc) {
 # Look at intensity data in time
 # Compare to parsed positional data
 # Highlight disparities
-plot_colour_timeline <- function(dat, cond, cll) {
-  nm <- dat$metadata %>% filter(condition == cond & cell == cll) %>% pull(name) %>% as.character()
-  dc <- dat$celldat[[nm]]
-  dp <- dat$parsed %>% filter(name == nm)
+plot_colour_timeline <- function(dat, cellid) {
+  dc <- dat$celldat[[cellid]]
+  dp <- dat$parsed %>% filter(cell_id == cellid)
   
   tcks <- make_time_ticks()
   d <- dc$intensities %>% 
