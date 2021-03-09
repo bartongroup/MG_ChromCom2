@@ -92,7 +92,8 @@ make_state_limit_tb <- function(params) {
     name = names(pr),
     limit = pr
   ) %>% 
-    separate(name, c("dummy", "state"))
+    separate(name, c("what", "state")) %>% 
+    filter(what == "dist")
 }
 
 plot_state_distance <- function(dp, params) {

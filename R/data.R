@@ -158,21 +158,17 @@ merge_cell_data <- function(d) {
 }
 
 
-process_parse_raw_data <- function(raw, int.sel = "Median", dist.lightblue = 0, dist.brown = 0.75, dist.pink = 0.4) {
+process_parse_raw_data <- function(raw, int.sel = "Median", params) {
   md <- raw$metadata %>% select(cell_id, condition, cell)
   celldat <- process_all_raw_data(raw, int.sel) 
   xyz <- merge_cell_data(celldat) %>% left_join(md, by="cell_id")
-  parsed <- parse_states(xyz, dist.lightblue, dist.brown, dist.pink) %>%
+  parsed <- parse_states(xyz, params) %>%
     left_join(md, by="cell_id")
   list(
     metadata = raw$metadata,
     celldat = celldat,
     xyz = xyz,
     parsed = parsed,
-    params = list(
-      dist_lightblue = dist.lightblue,
-      dist_brown = dist.brown,
-      dist_pink = dist.pink
-    )
+    params = params
   )
 }

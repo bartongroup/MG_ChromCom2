@@ -12,7 +12,7 @@ dist_xyz <- function(d, z_correction = 0.85) {
 # ds - a subset of the main "dat" tibble, needs to contain 2-4 rows
 # and co-ordinate columns (x, y, z)
 # value - tibble with classification of the state
-parse_one_state <- function(ds, dist.lightblue, dist.brown, dist.pink) {
+parse_one_state <- function(ds, params) {
   n_dots <- nrow(ds)
 
   dst <- NULL
@@ -22,7 +22,7 @@ parse_one_state <- function(ds, dist.lightblue, dist.brown, dist.pink) {
     state <- "none"
   } else if(n_dots == 2) {
     dst <- dist_xyz(ds)
-    state <- ifelse(dst > dist.lightblue, "lightblue", "black")
+    state <- "lightblue"
     # sometimes we see two dots with the same colour
     clr <- ds$colour
     if(clr[1] == clr[2]) state <- "none"
@@ -30,7 +30,7 @@ parse_one_state <- function(ds, dist.lightblue, dist.brown, dist.pink) {
     dsel <- ds %>% 
       filter(n_colour == 2)
     dst <- dist_xyz(dsel)
-    state <- ifelse(dst > dist.brown, "brown", "darkblue")
+    state <- ifelse(dst > params$dist.brown, "brown", "darkblue")
   } else if(n_dots == 4) {
     # find matching pairs
     ds <- ds %>% arrange(colour)
@@ -42,7 +42,7 @@ parse_one_state <- function(ds, dist.lightblue, dist.brown, dist.pink) {
       dst_a <- dst_c
       dst_b <- dst_d
     }
-    state <- ifelse(dst_a < dist.pink & dst_b < dist.pink, "red", "pink")
+    state <- ifelse(dst_a < params$dist.pink & dst_b < params$dist.pink, "red", "pink")
   }
   
   if(is.null(dst)) {
@@ -65,16 +65,37 @@ parse_one_state <- function(ds, dist.lightblue, dist.brown, dist.pink) {
   )
 }
 
+parse_black <- function(d, params) {
+  d %>% 
+    group_split(cell_id) %>% 
+    map_dfr(function(w) {
+      possible_black <- w$state == "lightblue" & w$dist_1 < params$dist.lightblue
+      r <- rle(possible_black)
+      tb <- tibble(
+        length = r$lengths,
+        possible_black = r$values
+      ) %>%
+        mutate(black = length >= params$black.length & possible_black)
+      r$values <- tb$black
+      bl <- inverse.rle(r)
+      w[bl, "state"] <- "black"
+      w[bl, "letter"] <- "K"
+      w
+    })
+ 
+}
+
 # parse states from xyz data
-parse_states <- function(xyz, dist.lightblue = 0, dist.brown = 0.75, dist.pink = 0.4) {
+parse_states <- function(xyz, params) {
   xyz %>% 
     group_split(cell_id, frame) %>% 
-    map_dfr(~parse_one_state(.x, dist.lightblue, dist.brown, dist.pink)) %>% 
+    map_dfr(~parse_one_state(.x, params)) %>% 
     left_join(state_colour %>% select(state, letter), by="state") %>% 
     mutate(
       state = factor(state, levels=state_colour$state),
       letter = factor(letter, levels=state_colour$letter)
-    )
+    ) %>% 
+    parse_black(params)
 }
 
 
