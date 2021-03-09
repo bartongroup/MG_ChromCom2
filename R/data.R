@@ -34,7 +34,21 @@ read_excel_cell <- function(excel_file, cache_file) {
   return(x)
 }
 
+
+check_for_files <- function(meta) {
+  m <- meta %>% 
+    select(cell_file, trackid_file, info_file) %>% 
+    pivot_longer(cols = everything(), names_to = "type", values_to = "file_name")
+  for(i in 1:nrow(m)) {
+    r <- m[i, ]
+    if(!file.exists(r$file_name)) {
+      stop(glue("File {r$file_name} not found."))
+    }
+  }
+}
+
 read_cells <- function(meta) {
+  check_for_files(meta)
   cls <- map2(meta$cell_file, meta$cache_file, ~read_excel_cell(.x, .y)) %>% set_names(meta$cell_id)
   trids <- map_dfr(meta$trackid_file, ~read_excel(.x)) %>% set_names(c("name", "track_id", "colour")) %>%
     mutate(track_id = as.character(as.integer(track_id))) %>% 
