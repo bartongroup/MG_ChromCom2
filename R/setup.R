@@ -12,3 +12,10 @@ state_colour <- tribble(
 ) %>% 
   mutate(state = as_factor(state))
 
+cell_sheets <- c(
+  "Intensity Median Ch=1 Img=1",
+  "Intensity Median Ch=2 Img=1",
+  "Time",
+  "Position"
+)
+

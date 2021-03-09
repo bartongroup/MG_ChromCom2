@@ -9,7 +9,6 @@ get_metadata <- function(path) {
     unite("cell_id", c(condition, cell), remove=FALSE, sep="_") %>% 
     mutate(
       cell_file = file.path(path, glue("{name}.xlsx")),
-      cache_file = file.path("cache", glue("{name}.rds")),
       trackid_file = file.path(path, glue("{name}_trackid.xlsx")),
       info_file = file.path(path, glue("{name}_info.xlsx"))
     ) %>% 
@@ -20,18 +19,10 @@ get_metadata <- function(path) {
 # Warning: original "xls" file does not work,
 # needs to be converted into "xlsx"
 # Returns named list of sheets
-read_excel_cell <- function(excel_file, cache_file) {
+read_excel_cell <- function(excel_file, sheets) {
   stopifnot(file.exists(excel_file))
-  if(file.exists(cache_file)) {
-    cat(glue("\nReading {cache_file}\n\n"))
-    x <- read_rds(cache_file)
-  } else {
-    cat(glue("\nReading {excel_file}\n\n"))
-    sheets <- excel_sheets(excel_file)
-    x <- map(sheets, ~read_excel(excel_file, .x, skip=1)) %>% set_names(sheets)
-    write_rds(x, cache_file)
-  }
-  return(x)
+  cat(glue("\nReading {excel_file}\n\n"))
+  map(sheets, ~read_excel(excel_file, .x, skip=1)) %>% set_names(sheets)
 }
 
 
@@ -49,7 +40,7 @@ check_for_files <- function(meta) {
 
 read_cells <- function(meta) {
   check_for_files(meta)
-  cls <- map2(meta$cell_file, meta$cache_file, ~read_excel_cell(.x, .y)) %>% set_names(meta$cell_id)
+  cls <- map(meta$cell_file, ~read_excel_cell(.x, cell_sheets)) %>% set_names(meta$cell_id)
   trids <- map_dfr(meta$trackid_file, ~read_excel(.x)) %>% set_names(c("name", "track_id", "colour")) %>%
     mutate(track_id = as.character(as.integer(track_id))) %>% 
     left_join(select(meta, name, cell_id), by="name")
@@ -67,23 +58,23 @@ identify_colours <- function(inten) {
     filter(track_id %in% tracks)
 }
 
+
 # Process raw data from one cell.
 # r is raw excel data from one cell file
-# int.sel is intensity selection (e.g. "Median")
 # track_ids = track_id data
-process_raw_data <- function(r, cell.id, int.sel, track_ids, meta) {
+process_raw_data <- function(r, cell.id, track_ids, meta) {
  
-  ch1 <- r[[glue("Intensity {int.sel} Ch=1 Img=1")]] %>% 
+  ch1 <- r[["Intensity Median Ch=1 Img=1"]] %>% 
     select(
-      intensity_red = glue("Intensity {int.sel}"),
+      intensity_red = glue("Intensity Median"),
       track_id = TrackID,
       id = ID
     ) %>% 
     mutate(track_id = as.character(as.integer(track_id))) 
   
-  ch2 <- r[[glue("Intensity {int.sel} Ch=2 Img=1")]] %>% 
+  ch2 <- r[["Intensity Median Ch=2 Img=1"]] %>% 
     select(
-      intensity_green = glue("Intensity {int.sel}"),
+      intensity_green = glue("Intensity Median"),
       id = ID
     ) 
   
@@ -143,9 +134,9 @@ process_raw_data <- function(r, cell.id, int.sel, track_ids, meta) {
   )
 }
 
-process_all_raw_data <- function(raw, int.sel) {
+process_all_raw_data <- function(raw) {
   cells <- raw$metadata$cell_id
-  map(cells, ~process_raw_data(raw$cells[[.x]], .x, int.sel, raw$track_ids, raw$metadata)) %>% 
+  map(cells, ~process_raw_data(raw$cells[[.x]], .x, raw$track_ids, raw$metadata)) %>% 
     set_names(cells)
 }
 
@@ -158,9 +149,9 @@ merge_cell_data <- function(d) {
 }
 
 
-process_parse_raw_data <- function(raw, int.sel = "Median", params) {
+process_parse_raw_data <- function(raw, params) {
   md <- raw$metadata %>% select(cell_id, condition, cell)
-  celldat <- process_all_raw_data(raw, int.sel) 
+  celldat <- process_all_raw_data(raw) 
   xyz <- merge_cell_data(celldat) %>% left_join(md, by="cell_id")
   parsed <- parse_states(xyz, params) %>%
     left_join(md, by="cell_id")
