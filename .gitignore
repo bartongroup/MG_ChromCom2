@@ -4,9 +4,8 @@
 .Ruserdata
 .drake
 .DS_Store
+man
 doc/report_cache/
 doc/report_files/
 data
-data_old
-data_original
 cache
