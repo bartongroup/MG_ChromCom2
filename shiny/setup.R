@@ -1,5 +1,3 @@
-if(!dir.exists("cache")) dir.create("cache")
-
 state_colour <- tribble(
   ~state, ~colour, ~letter,
   "none", "grey70", "-",

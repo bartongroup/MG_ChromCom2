@@ -17,7 +17,7 @@
 #'
 #' @return A list with lots of goodies.
 #' @export
-process_raw_data <- function(r, cellid, track_colours, meta) {
+process_one_raw_data <- function(r, cellid, track_colours, meta) {
  
   ch1 <- r[["Intensity Median Ch=1 Img=1"]] %>% 
     select(
@@ -96,9 +96,9 @@ process_raw_data <- function(r, cellid, track_colours, meta) {
 #'
 #' @return A named list, one element per cell.
 #' @export
-process_all_raw_data <- function(raw) {
+process_cells_raw_data <- function(raw) {
   cells <- raw$metadata$cell_id
-  map(cells, ~process_raw_data(raw$cells[[.x]], .x, raw$track_colours, raw$metadata)) %>% 
+  map(cells, ~process_one_raw_data(raw$cells[[.x]], .x, raw$track_colours, raw$metadata)) %>% 
     set_names(cells)
 }
 
@@ -117,14 +117,12 @@ merge_cell_data <- function(d) {
 }
 
 
-#' Process and parse raw data
+#' Process raw data
 #'
 #' The main function to prepare data for downstream analysis. I takes a raw data
-#' object (created by read_cells) and creates a list of coordinates and parsed
-#' cell states.
+#' object (created by read_cells) and creates a list of coordinates and metadata.
 #'
 #' @param raw Object with raw data.
-#' @param params List with parsing parameters. Should contain dist.lightblue, dist.brown, dist.pink and black.length.
 #' @param with_celldat Logical if the output object should include input raw data.
 #'
 #' @return List of metadata, xyz, parsed, params and (optional) celldat.
@@ -133,20 +131,40 @@ merge_cell_data <- function(d) {
 #' @examples
 #' metadata = get_metadata("data")
 #' raw = read_cells(metadata, cell_sheets)
-#' dat = process_parse_raw_data(raw, params) 
+#' dat = process_raw_data(raw) %>% parse_xyz_data(params)
 #' 
-process_parse_raw_data <- function(raw, params, with_celldat=TRUE) {
+process_raw_data <- function(raw, with_celldat=TRUE) {
   md <- raw$metadata %>% select(cell_id, condition, cell)
-  celldat <- process_all_raw_data(raw) 
+  celldat <- process_cells_raw_data(raw) 
   xyz <- merge_cell_data(celldat) %>% left_join(md, by="cell_id")
-  parsed <- parse_states(xyz, params) %>%
-    left_join(md, by="cell_id")
   r <- list(
     metadata = raw$metadata,
-    xyz = xyz,
-    parsed = parsed,
-    params = params
+    xyz = xyz
   )
   if(with_celldat) r$celldat <- celldat
   r
+}
+
+
+#' Parse processed xyz data
+#'
+#' @param d Processed data created by `process_raw_data`
+#' @param params List with parsing parameters. Should contain dist.lightblue, dist.brown, dist.pink and black.length.
+#'
+#' @return Original object with "parsed" tibble added.
+#' @export
+#'
+#' @examples
+#' metadata = get_metadata("data")
+#' raw = read_cells(metadata, cell_sheets)
+#' dat = process_raw_data(raw) %>% parse_xyz_data(params)
+#' 
+parse_xyz_data <- function(d, params) {
+  md <- d$metadata %>%
+    select(cell_id, condition, cell)
+  parsed <- parse_states(d$xyz, params) %>%
+    left_join(md, by="cell_id")
+  d$parsed <- parsed
+  d$params <- params
+  d
 }
