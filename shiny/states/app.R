@@ -1,4 +1,5 @@
 library(shiny)
+library(shinycssloaders)
 library(tidyverse)
 
 source("../setup.R")
@@ -28,18 +29,20 @@ ui <- fluidPage(
   sidebarLayout(
     sidebarPanel(
       actionButton("reload", "Reload data"),
-      p(),
-      selectInput("condition", "Conditions", choices=initial_conditions),
-      selectInput("cell", "Cell number", choices=initial_cells),
+      hr(),
       sliderInput("dist.lightblue", "Black/light blue limit", value=0.5, min=0, max=5, step=0.05),
       sliderInput("dist.brown", "Blue/brown limit", value=0.75, min=0, max=5, step=0.05),
       sliderInput("dist.pink", "Red/pink limit", value=0.4, min=0, max=5, step=0.05),
       sliderInput("black.length", "Black length", value=5, min=0, max=10, step=1),
       actionButton("submit", "Submit"),
+      hr(),
+      selectInput("condition", "Condition", choices=initial_conditions),
+      selectInput("cell", "Cell number", choices=initial_cells),
     ),
     
     mainPanel(
-      plotOutput("dist_state_plot", height="300px")
+      plotOutput("heatmap", height="100px") %>% withSpinner(color="#0dc5c1"),
+      plotOutput("dist_state_plot", height="300px") %>% withSpinner(color="#0dc5c1")
     )
   )
 )
@@ -47,17 +50,28 @@ ui <- fluidPage(
 
 server <- function(input, output, session) {
   
+  # We use isolate() to avoid dependency on input
+  # The plot will be updated only on "sumbit"
   params_from_input <- function() {
-    list(
+    isolate(list(
       dist.lightblue = input$dist.lightblue,
       dist.brown = input$dist.brown,
       dist.pink = input$dist.pink,
       black.length = input$black.length
-    )
+    ))
   }
   
   observeEvent(input$reload, {
-    reload_data(data.path, cell_sheets, cache.file)
+    withProgress(message = "Loading Excel files", {
+      metadata <- get_metadata(data.path)
+      incProgress(1/4)
+      dat <- read_cells(metadata, cell_sheets)
+      incProgress(1/4)
+      dat <- process_raw_data(dat, with_celldat=FALSE)
+      incProgress(1/4)
+      write_rds(dat, cache.file)
+      incProgress(1/4)
+    })
   })
   
   dat <- eventReactive(input$submit, {
@@ -69,11 +83,20 @@ server <- function(input, output, session) {
   })
   
   output$dist_state_plot <- renderPlot({
+    input$submit
     d <- dat()
     params <- params_from_input()
     d$parsed %>% 
       filter(condition == input$condition & cell == input$cell) %>% 
       pl_state_distance(params)
+  })
+  
+  output$heatmap <- renderPlot({
+    input$submit
+    d <- dat()
+    d$parsed %>% 
+      filter(condition == input$condition) %>% 
+      pl_state_map()
   })
   
 }
