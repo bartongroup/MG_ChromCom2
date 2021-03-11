@@ -8,7 +8,14 @@ source("../parse.R")
 source("../process.R")
 source("func.R")
 
-data.path <- "../../data"
+dirs <- c(
+  "/cluster/gjb_lab/mgierlinski/projects/chromcom2/data",
+  "/Users/mgierlinski/Projects/ChromCom2/data"
+)
+
+data.path <- NULL
+for(d in dirs) if(dir.exists(d)) data.path <- d
+
 cache.path <- "cache"
 
 if(!dir.exists(cache.path)) {
@@ -42,7 +49,7 @@ ui <- fluidPage(
     
     mainPanel(
       plotOutput("heatmap", height="100px") %>% withSpinner(color="#0dc5c1"),
-      plotOutput("dist_state_plot", height="300px") %>% withSpinner(color="#0dc5c1")
+      plotOutput("dist_state_plot", height="500px") %>% withSpinner(color="#0dc5c1")
     )
   )
 )
@@ -88,7 +95,7 @@ server <- function(input, output, session) {
     params <- params_from_input()
     d$parsed %>% 
       filter(condition == input$condition & cell == input$cell) %>% 
-      pl_state_distance(params)
+      pl_distances(params)
   })
   
   output$heatmap <- renderPlot({

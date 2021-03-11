@@ -48,6 +48,40 @@ pl_state_distance <- function(dp, params) {
     labs(x="Time since nebd (min)", y=expression(Distance~(mu * m)), shape="Num dots", colour="State")
 }
 
+pl_all_distances <- function(dp, params) {
+  d <- dp %>% 
+    select(-c(frame, time, letter, condition, cell)) %>% 
+    pivot_longer(cols = starts_with("dist"))
+  
+  ds <- d %>% 
+    group_by(cell_id, time_nebd) %>% 
+    summarise(d_max = max(value, na.rm=TRUE))
+  
+  dsum <- d %>% 
+    group_by(cell_id, time_nebd) %>% 
+    tally() %>% 
+    left_join(dp, by=c("time_nebd", "cell_id"))
+  
+  ggplot(d, aes(x=time_nebd, y=value)) +
+    theme_bw() +
+    theme(panel.grid = element_blank(), legend.position="none") +
+    geom_segment(data=ds, aes(x=time_nebd, xend=time_nebd, y=0, yend=d_max), colour="grey70") +
+    geom_point(aes(fill=name, colour=name, shape=factor(n_dot, levels=1:4)), size=3) +
+    scale_fill_manual(values = c("blue", "orange", "green", "red")) +
+    scale_colour_manual(values = c("blue", "orange", "green", "red")) +
+    scale_shape_manual(values=c(20, 21, 24, 23), drop=FALSE) +
+    geom_text(data = dsum, aes(x=time_nebd, y=-0.1, label=letter), vjust=0, colour="black") +
+    #geom_text(data = dsum, aes(x=time_nebd, y=-0.3, label=n_dot), vjust=-0.6, colour="black") +
+    labs(x="Time since nebd (min)", y=expression(Distance~(mu * m)), shape="Num dots", colour="Distance", fill="Distance")
+}
+
+pl_distances <- function(dp, params) {
+  g1 <- pl_state_distance(dp, params)
+  g2 <- pl_all_distances(dp, params)
+  cowplot::plot_grid(g1, g2, align="v", ncol=1)
+}
+
+
 pl_state_map <- function(dp) {
   dp %>% 
     ggplot(aes(x=time_nebd, y=as_factor(cell) %>% fct_rev(), fill=state)) +
