@@ -20,6 +20,7 @@ data.path <- NULL
 for(d in dirs) if(dir.exists(d)) data.path <- d
 
 cache.path <- "cache"
+cache.file <- file.path(cache.path, "data.rds")
 
 if(!dir.exists(cache.path)) {
   dir.create(cache.path)
