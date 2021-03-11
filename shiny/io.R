@@ -14,13 +14,13 @@ get_info <- function(path) {
   # Check if sheets OK
   for(f in files) {
     fn <- file.path(path, f)
-    sh <- excel_sheets(fn)
+    sh <- readxl::excel_sheets(fn)
     if(!(sh[1] == "metadata" & sh[2] == "trackid")) stop(glue("Sheets in {fn} should be 'metadata' and 'trackid'."))
   }
   
   meta <- map_dfr(files, function(f) {
     fn <- file.path(path, f)
-    read_excel(fn, sheet="metadata") %>% 
+    readxl::read_excel(fn, sheet="metadata") %>% 
     set_names(c("name", "nebd_frame", "condition", "cell", "date")) %>% 
     unite("cell_id", c(condition, cell), remove=FALSE, sep="_") %>% 
     mutate(
@@ -31,7 +31,7 @@ get_info <- function(path) {
     mutate(date = as.Date(date))
   })
   
-  trcol <- map_dfr(meta$info_file, ~read_excel(.x, sheet="trackid")) %>%
+  trcol <- map_dfr(meta$info_file, ~readxl::read_excel(.x, sheet="trackid")) %>%
     set_names(c("name", "track_id", "colour")) %>%
     mutate(track_id = as.character(as.integer(track_id))) %>% 
     left_join(select(meta, name, cell_id), by="name")
@@ -56,7 +56,7 @@ get_info <- function(path) {
 read_excel_cell <- function(excel_file, sheets, verbose=TRUE) {
   stopifnot(file.exists(excel_file))
   if(verbose) cat(glue("\nReading {excel_file}\n\n"))
-  map(sheets, ~read_excel(excel_file, .x, skip=1)) %>% set_names(sheets)
+  map(sheets, ~readxl::read_excel(excel_file, .x, skip=1)) %>% set_names(sheets)
 }
 
 
