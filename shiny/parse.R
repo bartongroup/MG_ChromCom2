@@ -24,42 +24,68 @@ dist_xyz <- function(d, z_correction = 0.85) {
 parse_one_state <- function(ds, params) {
   n_dots <- nrow(ds)
   
-  dst <- NULL
-  
   if(n_dots == 1) {
-    dst <- 0
+    a <- 0
+    b <- 0
+    r <- 0
+    g <- 0
     state <- "none"
-  } else if(n_dots == 2) {
-    dst <- dist_xyz(ds)
-    state <- "lightblue"
-    # sometimes we see two dots with the same colour
-    clr <- ds$colour
-    if(clr[1] == clr[2]) state <- "none"
-  } else if(n_dots == 3) {
-    dsel <- ds %>% 
-      filter(n_colour == 2)
-    dst <- dist_xyz(dsel)
-    state <- ifelse(dst > params$dist.brown, "brown", "darkblue")
-  } else if(n_dots == 4) {
-    # find matching pairs
-    ds <- ds %>% arrange(colour)
-    dst_a <- dist_xyz(ds[c(1,3), ])
-    dst_b <- dist_xyz(ds[c(2,4), ])
-    dst_c <- dist_xyz(ds[c(1,4), ])
-    dst_d <- dist_xyz(ds[c(2,3), ])
-    if(dst_c + dst_d < dst_a + dst_b) {
-      dst_a <- dst_c
-      dst_b <- dst_d
-    }
-    state <- ifelse(dst_a < params$dist.pink & dst_b < params$dist.pink, "red", "pink")
   }
   
-  if(is.null(dst)) {
-    dst1 <- dst_a
-    dst2 <- dst_b
-  } else {
-    dst1 <- dst
-    dst2 <- as.numeric(NA)
+  else if(n_dots == 2) {
+    d <- dist_xyz(ds)
+    # sometimes we see two dots with the same colour
+    clr <- ds$colour
+    if(clr[1] == clr[2]) {
+      if(clr[1] == "red") {
+        r <- d
+        g <- 0
+      } else {
+        r <- 0
+        g <- d
+      }
+      a <- 0
+      b <- 0
+      state <- "none"
+    } else {
+      a <- d
+      b <- d
+      r <- 0
+      g <- 0
+      state <- "lightblue"
+    }
+  }
+  
+  else if(n_dots == 3) {
+    ds <- ds %>% arrange(n_colour)
+    clr <- ds$colour
+    a <- dist_xyz(ds[c(1,2),])
+    b <- dist_xyz(ds[c(1,3),])
+    d <- dist_xyz(ds[c(2,3),])  # these two have the same colour
+    if(clr[2] == "red") {
+      r <- d
+      g <- 0
+    } else {
+      r <- 0
+      g <- d
+    }
+    state <- ifelse(d > params$dist.brown, "brown", "darkblue")
+  }
+  
+  else if(n_dots == 4) {
+    # find matching pairs
+    ds <- ds %>% arrange(colour)
+    a <- dist_xyz(ds[c(1,3), ])
+    b <- dist_xyz(ds[c(2,4), ])
+    c <- dist_xyz(ds[c(1,4), ])
+    d <- dist_xyz(ds[c(2,3), ])
+    g <- dist_xyz(ds[c(1,2), ])  # note: "green" is before "red" when sorted
+    r <- dist_xyz(ds[c(3,4), ])
+    if(c + d < a + b) {
+      a <- c
+      b <- d
+    }
+    state <- ifelse(a < params$dist.pink & b < params$dist.pink, "red", "pink")
   }
   
   tibble(
@@ -68,8 +94,10 @@ parse_one_state <- function(ds, params) {
     time = ds$time[1],
     time_nebd = ds$time_nebd[1],
     n_dot = n_dots,
-    dist_1 = dst1,
-    dist_2 = dst2,
+    dist_a = a,
+    dist_b = b,
+    dist_r = r,
+    dist_g = g,
     state = state
   )
 }
@@ -89,7 +117,7 @@ parse_black <- function(d, params) {
   d %>% 
     group_split(cell_id) %>% 
     map_dfr(function(w) {
-      possible_black <- w$state == "lightblue" & w$dist_1 < params$dist.lightblue
+      possible_black <- w$state == "lightblue" & w$dist_a < params$dist.lightblue
       r <- rle(possible_black)
       tb <- tibble(
         length = r$lengths,

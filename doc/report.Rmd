@@ -151,6 +151,12 @@ From John:
 
 I follow this approach. I calculate distances for the two possible combination of red and green dots, and then select the combination with smaller mean distance. The state is deemed red when both distances in this combination are less than the limit.
 
+This cartoon figure defines distances a, b, r and g.
+
+```{r fig_rules}
+knitr::include_graphics("rules.png")
+```
+
 ### Tracking 3 cells
 
 This figure demonstrates how state tracking works. The shapes indicate number of dots detected, the colour indicates the state. The horizontal dashed lines show the distance limits applied.
@@ -170,6 +176,13 @@ What might be of interest, is the distribution of distances between dots. The ne
 ```{r fig_distance_distribution, fig.width=5, fig.height=4}
 readd(fig_cells_distance_distribution)
 ```
+
+Another plot showing all distances (a, b, r and g):
+
+```{r fig_all_distances, fig.width=10, fig.height=6}
+readd(fig_all_distances)
+```
+
 
 ## Session info
 

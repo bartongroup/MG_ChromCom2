@@ -92,13 +92,25 @@ make_state_limit_tb <- function(params) {
     name = names(pr),
     limit = pr
   ) %>% 
+    filter(str_detect(name, "dist.")) %>% 
+    mutate(limit = as.numeric(limit)) %>% 
     separate(name, c("what", "state")) %>% 
-    filter(what == "dist")
+    mutate(state = factor(state, levels=state_colour$state))
 }
+
+compact_distances <- function(dp) {
+  dp %>% 
+    mutate(
+      dist_1 = if_else(n_dot==2, dist_a, if_else(n_dot==3, if_else(dist_r > dist_g, dist_r, dist_g), dist_a)),
+      dist_2 = if_else(n_dot==4, dist_b, as.numeric(NA))
+    )
+}
+
 
 plot_state_distance <- function(dp, params) {
   dp %>% 
-    mutate(dist_max = pmax(dist_1, dist_2, na.rm=TRUE), time_nebd = time_nebd) %>% 
+    compact_distances() %>% 
+    mutate(dist_max = pmax(dist_1, dist_2, na.rm=TRUE)) %>% 
   ggplot(aes(x=time_nebd, y=dist_1, fill=state, shape=factor(n_dot, levels=1:4))) +
     theme_bw() +
     theme(panel.grid = element_blank()) +
@@ -117,6 +129,7 @@ plot_state_distance <- function(dp, params) {
 
 plot_distance_distribution <- function(dp, params, cex=3) {
   dp %>%
+    compact_distances() %>% 
     select(condition, cell, n_dot, state, dist_1, dist_2) %>% 
     pivot_longer(cols=c(dist_1, dist_2)) %>%
     drop_na() %>%
@@ -131,6 +144,34 @@ plot_distance_distribution <- function(dp, params, cex=3) {
     geom_beeswarm(cex=cex) +
     scale_colour_manual(values=state_colour$colour, drop=FALSE) +
     labs(x="Number of dots", y="Distance")
+}
+
+plot_all_distances <- function(dp, params) {
+  d <- dp %>% 
+    select(-c(frame, time, letter, condition, cell)) %>% 
+    pivot_longer(cols = starts_with("dist"))
+  
+  ds <- d %>% 
+    group_by(cell_id, time_nebd) %>% 
+    summarise(d_max = max(value, na.rm=TRUE))
+  
+  dsum <- d %>% 
+    group_by(cell_id, time_nebd) %>% 
+    tally() %>% 
+    left_join(dp, by=c("time_nebd", "cell_id"))
+
+  ggplot(d, aes(x=time_nebd, y=value)) +
+    theme_bw() +
+    theme(panel.grid = element_blank()) +
+    geom_segment(data=ds, aes(x=time_nebd, xend=time_nebd, y=0, yend=d_max), colour="grey70") +
+    geom_point(aes(fill=name, colour=name, shape=factor(n_dot, levels=1:4))) +
+    scale_fill_manual(values = c("blue", "orange", "green", "red")) +
+    scale_colour_manual(values = c("blue", "orange", "green", "red")) +
+    scale_shape_manual(values=c(20, 21, 24, 23), drop=FALSE) +
+    facet_wrap(~cell_id, ncol=1) +
+    geom_text(data = dsum, aes(x=time_nebd, y=-0.3, label=letter), vjust=0.6, colour="black") +
+    geom_text(data = dsum, aes(x=time_nebd, y=-0.3, label=n_dot), vjust=-0.6, colour="black") +
+    labs(x="Time since nebd (min)", y=expression(Distance~(mu * m)), shape="Num dots", colour="Distance", fill="Distance")
 }
 
 plot_state_map <- function(dp) {

@@ -14,11 +14,22 @@ make_state_limit_tb <- function(params) {
   ) %>% 
     filter(str_detect(name, "dist.")) %>% 
     mutate(limit = as.numeric(limit)) %>% 
-    separate(name, c("what", "state")) 
+    separate(name, c("what", "state")) %>% 
+    mutate(state = factor(state, levels=state_colour$state))
+}
+
+
+compact_distances <- function(dp) {
+  dp %>% 
+    mutate(
+      dist_1 = if_else(n_dot==2, dist_a, if_else(n_dot==3, if_else(dist_r > dist_g, dist_r, dist_g), dist_a)),
+      dist_2 = if_else(n_dot==4, dist_b, as.numeric(NA))
+    )
 }
 
 pl_state_distance <- function(dp, params) {
   d <- dp %>% 
+    compact_distances() %>% 
     mutate(dist_max = pmax(dist_1, dist_2, na.rm=TRUE))
   dd <- make_state_limit_tb(params)
   ds <- drop_na(d)
