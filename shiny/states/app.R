@@ -63,9 +63,9 @@ server <- function(input, output, session) {
   
   observeEvent(input$reload, {
     withProgress(message = "Loading Excel files", {
-      metadata <- get_metadata(data.path)
+      info <- get_info(data.path)
       incProgress(1/4)
-      dat <- read_cells(metadata, cell_sheets)
+      dat <- read_cells(info, cell_sheets)
       incProgress(1/4)
       dat <- process_raw_data(dat, with_celldat=FALSE)
       incProgress(1/4)

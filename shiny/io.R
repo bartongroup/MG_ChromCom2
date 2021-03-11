@@ -1,34 +1,53 @@
-#' Get metadata
+#' Get info
 #'
-#' Create metadata. Needs *info.xlsx files for each cell.
+#' Create info. Needs *info.xlsx files for each cell.
 #'
 #' @param path Directory containing *info.xlsx files.
 #'
-#' @return Tibble with cell name, id, condition, cell_id, nebd_frame and
-#' Excel file names necessary to read all data
+#' @return A list with two elements: metadata - tibble with cell name, id,
+#'   condition, cell_id, nebd_frame and Excel file names necessary to read all
+#'   data; track_colour - data about track colours
 #' @export
-get_metadata <- function(path) {
+get_info <- function(path) {
   files <- dir(path, pattern="*info.xlsx", full.names=FALSE)
-  map_dfr(files, function(f) {
-    d <- read_excel(file.path(path, f))
-  }) %>% 
-    set_names(c("name", "nebd_frame", "condition", "cell")) %>% 
+  
+  # Check if sheets OK
+  for(f in files) {
+    fn <- file.path(path, f)
+    sh <- excel_sheets(fn)
+    if(!(sh[1] == "metadata" & sh[2] == "trackid")) stop(glue("Sheets in {fn} should be 'metadata' and 'trackid'."))
+  }
+  
+  meta <- map_dfr(files, function(f) {
+    fn <- file.path(path, f)
+    read_excel(fn, sheet="metadata") %>% 
+    set_names(c("name", "nebd_frame", "condition", "cell", "date")) %>% 
     unite("cell_id", c(condition, cell), remove=FALSE, sep="_") %>% 
     mutate(
-      cell_file = file.path(path, glue("{name}.xlsx")),
-      trackid_file = file.path(path, glue("{name}_trackid.xlsx")),
-      info_file = file.path(path, glue("{name}_info.xlsx"))
+      cell_file = file.path(path, glue("{name}.xls")),
+      info_file = fn
     ) %>% 
-    mutate_at(vars(name, condition), as_factor)
+    mutate_at(vars(name, condition), as_factor) %>% 
+    mutate(date = as.Date(date))
+  })
+  
+  trcol <- map_dfr(meta$info_file, ~read_excel(.x, sheet="trackid")) %>%
+    set_names(c("name", "track_id", "colour")) %>%
+    mutate(track_id = as.character(as.integer(track_id))) %>% 
+    left_join(select(meta, name, cell_id), by="name")
+  
+  list(
+    metadata = meta,
+    track_colours = trcol
+  )
 }
 
 
 #' Read selected sheets from an Excel file.
 #'
-#' @param excel_file Input file. Warning: it needs to be xlsx file. Does not
-#'   work with some older versions of xls files, in particular Excel output from
-#'   Imaris software. Hence, each cell file has to be manually converted into
-#'   xlsx.
+#' @param excel_file Input file. Warning: Imaris software writes an xls file
+#'   which is incompatible with readxl. You need to open each Excel file in
+#'   Excel and save it again.
 #' @param sheets Sheets to read.
 #' @param verbose Logical, print progress.
 #'
@@ -51,7 +70,7 @@ read_excel_cell <- function(excel_file, sheets, verbose=TRUE) {
 #' @export
 test_for_files <- function(meta) {
   m <- meta %>% 
-    select(cell_file, trackid_file, info_file) %>% 
+    select(cell_file, info_file) %>% 
     pivot_longer(cols = everything(), names_to = "type", values_to = "file_name")
   for(i in 1:nrow(m)) {
     r <- m[i, ]
@@ -72,18 +91,14 @@ test_for_files <- function(meta) {
 #'
 #' @return A list with metadata, cells and track_colours.
 #' @export
-read_cells <- function(meta, sheets) {
-  test_for_files(meta)
-  cls <- map(meta$cell_file, ~read_excel_cell(.x, sheets)) %>%
-    set_names(meta$cell_id)
-  trcol <- map_dfr(meta$trackid_file, ~read_excel(.x)) %>%
-    set_names(c("name", "track_id", "colour")) %>%
-    mutate(track_id = as.character(as.integer(track_id))) %>% 
-    left_join(select(meta, name, cell_id), by="name")
+read_cells <- function(info, sheets) {
+  test_for_files(info$metadata)
+  cls <- map(info$metadata$cell_file, ~read_excel_cell(.x, sheets)) %>%
+    set_names(info$metadata$cell_id)
   list(
-    metadata = meta,
-    cells = cls,
-    track_colours = trcol
+    metadata = info$metadata,
+    track_colours = info$track_colours,
+    cells = cls
   )
 }
 
