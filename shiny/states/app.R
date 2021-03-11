@@ -1,3 +1,6 @@
+libDir <- "/cluster/gjb_lab/mgierlinski/R_shiny/library/3.6"
+if(dir.exists(libDir)) .libPaths(libDir)
+
 library(shiny)
 library(shinycssloaders)
 library(tidyverse)
