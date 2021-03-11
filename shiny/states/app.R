@@ -3,6 +3,7 @@ if(dir.exists(libDir)) .libPaths(libDir)
 
 library(shiny)
 library(shinycssloaders)
+library(readxl)
 library(tidyverse)
 
 source("../setup.R")
