@@ -22,10 +22,11 @@ for(d in dirs) if(dir.exists(d)) data.path <- d
 cache.path <- "cache"
 cache.file <- file.path(cache.path, "data.rds")
 
-if(!dir.exists(cache.path)) {
-  dir.create(cache.path)
+if(!dir.exists(cache.path)) dir.create(cache.path)
+if(!file.exists(cache.file)) {
   reload_data(data.path, cell_sheets, cache.file)
 }
+
 initial_dat <- read_rds(cache.file)
 initial_conditions <- initial_dat$metadata$condition %>% levels()
 initial_cells <- initial_dat$metadata$cell %>% unique()
