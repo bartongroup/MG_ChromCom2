@@ -47,6 +47,10 @@ Collaborators: Tomo Tanaka, John Eykelenboom
 
 [Proposal]()
 
+Shiny data explorers
+
+ - [state diagnostic](https://shiny.compbio.dundee.ac.uk/private/marek_chromcom2/states/)
+
 #  {.tabset}
 
 ## Proposal
