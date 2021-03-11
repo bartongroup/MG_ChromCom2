@@ -1,6 +1,6 @@
 reload_data <- function(data.path, cell_sheets, cache.file) {
-  metadata <- get_metadata(data.path)
-  dat <- read_cells(metadata, cell_sheets) %>% 
+  info <- get_info(data.path)
+  dat <- read_cells(info, cell_sheets) %>% 
   process_raw_data(with_celldat=FALSE)
   write_rds(dat, cache.file)
 }
