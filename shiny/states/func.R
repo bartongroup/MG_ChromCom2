@@ -45,6 +45,7 @@ pl_state_distance <- function(dp, params) {
     scale_shape_manual(values=c(20, 21, 24, 23), drop=FALSE) +
     geom_point(data =  ds, aes(y=dist_2), shape=23, size=3, colour="grey50") +
     scale_y_continuous(expand=expansion(mult=c(0, 0.05))) +
+    scale_x_continuous(breaks=seq(-100,100,5)) +
     labs(x="Time since nebd (min)", y=expression(Distance~(mu * m)), shape="Num dots", colour="State")
 }
 
@@ -70,6 +71,7 @@ pl_all_distances <- function(dp, params) {
     scale_fill_manual(values = c("blue", "orange", "green", "red")) +
     scale_colour_manual(values = c("blue", "orange", "green", "red")) +
     scale_shape_manual(values=c(20, 21, 24, 23), drop=FALSE) +
+    scale_x_continuous(breaks=seq(-100,100,5)) +
     geom_text(data = dsum, aes(x=time_nebd, y=-0.1, label=letter), vjust=0, colour="black") +
     #geom_text(data = dsum, aes(x=time_nebd, y=-0.3, label=n_dot), vjust=-0.6, colour="black") +
     labs(x="Time since nebd (min)", y=expression(Distance~(mu * m)), shape="Num dots", colour="Distance", fill="Distance")

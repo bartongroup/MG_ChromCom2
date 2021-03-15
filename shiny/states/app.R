@@ -5,6 +5,7 @@ library(shiny)
 library(shinycssloaders)
 library(readxl)
 library(glue)
+library(plotly)
 library(tidyverse)
 
 source("../setup.R")
@@ -32,6 +33,8 @@ if(!file.exists(cache.file)) {
 initial_dat <- read_rds(cache.file)
 initial_conditions <- initial_dat$metadata$condition %>% levels()
 initial_cells <- initial_dat$metadata$cell %>% unique()
+min_time <- min(initial_dat$xyz$time_nebd)
+max_time <- max(initial_dat$xyz$time_nebd)
 
 
 #########################################
@@ -52,11 +55,13 @@ ui <- fluidPage(
       hr(),
       selectInput("condition", "Condition", choices=initial_conditions),
       selectInput("cell", "Cell number", choices=initial_cells),
+      sliderInput("time", "Time since NEBD (min)", value=0, min=min_time, max=max_time, step=1)
     ),
     
     mainPanel(
       plotOutput("heatmap", height="100px") %>% withSpinner(color="#0dc5c1"),
-      plotOutput("dist_state_plot", height="500px") %>% withSpinner(color="#0dc5c1")
+      plotOutput("dist_state_plot", height="500px") %>% withSpinner(color="#0dc5c1"),
+      plotlyOutput("dot_plot", height="300px", width="300px") %>% withSpinner(color="#0dc5c1")
     )
   )
 )
@@ -111,6 +116,15 @@ server <- function(input, output, session) {
     d$parsed %>% 
       filter(condition == input$condition) %>% 
       pl_state_map()
+  })
+  
+  output$dot_plot <- renderPlotly({
+    d <- dat()
+    d$xyz %>% 
+      filter(condition == input$condition & cell == input$cell & time_nebd == input$time) %>% 
+      plot_ly() %>%
+      add_trace(type="scatter3d", mode="markers", x = ~x, y = ~y, z = ~z, marker=list(color = ~colour)) %>% 
+      layout(font=list(size=9), scene=list(aspectmode="data"))
   })
   
 }
