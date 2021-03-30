@@ -176,7 +176,7 @@ plot_all_distances <- function(dp, params) {
 
 plot_state_map <- function(dp) {
   dp %>% 
-    ggplot(aes(x=time_nebd, y=cell, fill=state)) +
+    ggplot(aes(x=time_nebd, y=cell_id, fill=state)) +
     theme_bw() +
     theme(
       panel.grid = element_blank(),

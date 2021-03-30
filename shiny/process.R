@@ -85,6 +85,7 @@ process_one_raw_data <- function(r, cellid, track_colours, meta) {
     track_colour = track_colour,
     intensities = intensities,
     cell = this_meta$cell,
+    cell_line = this_meta$cell_line,
     condition = this_meta$condition,
     cell_id = cellid
   )
@@ -134,7 +135,7 @@ merge_cell_data <- function(d) {
 #' dat = process_raw_data(raw) %>% parse_xyz_data(params)
 #' 
 process_raw_data <- function(raw, with_celldat=TRUE) {
-  md <- raw$metadata %>% select(cell_id, condition, cell)
+  md <- raw$metadata %>% select(cell_id, cell_line, condition, movie, cell)
   celldat <- process_cells_raw_data(raw) 
   xyz <- merge_cell_data(celldat) %>% left_join(md, by="cell_id")
   r <- list(
@@ -161,7 +162,7 @@ process_raw_data <- function(raw, with_celldat=TRUE) {
 #' 
 parse_xyz_data <- function(d, params) {
   md <- d$metadata %>%
-    select(cell_id, condition, cell)
+    select(cell_id, cell_line, condition, movie, cell)
   parsed <- parse_states(d$xyz, params) %>%
     left_join(md, by="cell_id")
   d$parsed <- parsed

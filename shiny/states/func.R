@@ -51,7 +51,7 @@ pl_state_distance <- function(dp, params) {
 
 pl_all_distances <- function(dp, params) {
   d <- dp %>% 
-    select(-c(frame, time, letter, condition, cell)) %>% 
+    select(-c(frame, time, letter, cell_line, condition, cell)) %>% 
     pivot_longer(cols = starts_with("dist"))
   
   ds <- d %>% 
@@ -86,7 +86,8 @@ pl_distances <- function(dp, params) {
 
 pl_state_map <- function(dp) {
   dp %>% 
-    ggplot(aes(x=time_nebd, y=as_factor(cell) %>% fct_rev(), fill=state)) +
+    unite(local_id, c(movie, cell)) %>% 
+    ggplot(aes(x=time_nebd, y=as_factor(local_id) %>% fct_rev(), fill=state)) +
     theme_bw() +
     theme(
       panel.grid = element_blank(),
@@ -96,4 +97,31 @@ pl_state_map <- function(dp) {
     geom_tile() +
     scale_fill_manual(values=state_colour$colour, drop=FALSE) +
     labs(x="Time since nebd (min)", y=NULL, fill=NULL)
+}
+
+pl_proportion_map <- function(dp, k=5) {
+  dp %>% 
+    #mutate(statelet = recode(as.character(state), 
+    #  "lightblue" = "blue",
+    #  "darkblue" = "blue",
+    #  "brown" = "blue"
+    #)) %>% 
+    filter(state != "none") %>% 
+    group_by(time_nebd, state) %>%
+    tally() %>% 
+    ungroup() %>% 
+    group_by(time_nebd) %>% 
+    mutate(prop = n / sum(n)) %>% 
+    ungroup() %>% 
+    group_by(state) %>%
+    mutate(smooth = runmean(prop, k)) %>% 
+  ggplot(aes(x=time_nebd, y=smooth, colour=state)) +
+    theme_bw() +
+    theme(legend.position = "none") +
+    geom_line(size=1.5) +
+    scale_colour_manual(values=state_colour$colour, drop=FALSE) +
+    labs(x="Time since NEBD (min)", y="Proportion") +
+    scale_x_continuous(breaks=seq(-100,100,5)) +
+    scale_y_continuous(expand=c(0,0), limits=c(0,1))
+    
 }

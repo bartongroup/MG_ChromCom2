@@ -33,6 +33,8 @@ if(!file.exists(cache.file)) {
 initial_dat <- read_rds(cache.file)
 initial_conditions <- initial_dat$metadata$condition %>% levels()
 initial_cells <- initial_dat$metadata$cell %>% unique()
+
+initial_cell_ids <- initial_dat$metadata$cell_id %>% unique()
 min_time <- min(initial_dat$xyz$time_nebd)
 max_time <- max(initial_dat$xyz$time_nebd)
 
@@ -53,15 +55,20 @@ ui <- fluidPage(
       sliderInput("black.length", "Black length", value=5, min=0, max=10, step=1),
       actionButton("submit", "Submit"),
       hr(),
-      selectInput("condition", "Condition", choices=initial_conditions),
-      selectInput("cell", "Cell number", choices=initial_cells),
+      selectInput("cell_id", "Cell ID", choices=initial_cell_ids),
       sliderInput("time", "Time since NEBD (min)", value=0, min=min_time, max=max_time, step=1)
     ),
     
     mainPanel(
-      plotOutput("heatmap", height="100px") %>% withSpinner(color="#0dc5c1"),
-      plotOutput("dist_state_plot", height="500px") %>% withSpinner(color="#0dc5c1"),
-      plotlyOutput("dot_plot", height="300px", width="300px") %>% withSpinner(color="#0dc5c1")
+      tabsetPanel(type = "tabs",
+                  tabPanel("Heatmap", plotOutput("map", height="700px") %>% withSpinner(color="#0dc5c1")),
+                  tabPanel("State plot", plotOutput("dist_state_plot", height="500px") %>% withSpinner(color="#0dc5c1")),
+                  tabPanel("Dots", plotlyOutput("dot_plot", height="400px", width="400px") %>% withSpinner(color="#0dc5c1"))
+      )
+      
+      #plotOutput("heatmap", height="100px") %>% withSpinner(color="#0dc5c1"),
+      #plotOutput("dist_state_plot", height="500px") %>% withSpinner(color="#0dc5c1"),
+      #plotlyOutput("dot_plot", height="300px", width="300px") %>% withSpinner(color="#0dc5c1")
     )
   )
 )
@@ -106,22 +113,25 @@ server <- function(input, output, session) {
     d <- dat()
     params <- params_from_input()
     d$parsed %>% 
-      filter(condition == input$condition & cell == input$cell) %>% 
+      filter(cell_id == input$cell_id) %>% 
       pl_distances(params)
   })
   
-  output$heatmap <- renderPlot({
+  output$map <- renderPlot({
     input$submit
     d <- dat()
-    d$parsed %>% 
-      filter(condition == input$condition) %>% 
-      pl_state_map()
+    r <- d$parsed %>% 
+      filter(cell_id == input$cell_id) %>% 
+      select(cell_line, condition) %>% 
+      distinct()
+    dp <- d$parsed %>% filter(cell_line == r$cell_line & condition == r$condition)
+    plot_grid(pl_state_map(dp), pl_proportion_map(dp, k=10), ncol=1, align="v")
   })
   
   output$dot_plot <- renderPlotly({
     d <- dat()
     d$xyz %>% 
-      filter(condition == input$condition & cell == input$cell & time_nebd == input$time) %>% 
+      filter(cell_id == input$cell_id & time_nebd == input$time) %>% 
       plot_ly() %>%
       add_trace(type="scatter3d", mode="markers", x = ~x, y = ~y, z = ~z, marker=list(color = ~colour)) %>% 
       layout(font=list(size=9), scene=list(aspectmode="data"))

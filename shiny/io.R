@@ -20,16 +20,25 @@ get_info <- function(path) {
   
   meta <- map_dfr(files, function(f) {
     fn <- file.path(path, f)
-    readxl::read_excel(fn, sheet="metadata") %>% 
-    set_names(c("name", "nebd_frame", "condition", "cell", "date")) %>% 
-    unite("cell_id", c(condition, cell), remove=FALSE, sep="_") %>% 
-    mutate(
-      cell_file = file.path(path, glue("{name}.xls")),
-      info_file = fn
-    ) %>% 
-    mutate_at(vars(name, condition), as_factor) %>% 
-    mutate(date = as.Date(date))
-  })
+    r <- readxl::read_excel(fn,
+      sheet = "metadata",
+      col_names = c("name", "nebd_frame", "cell_line", "condition", "movie", "cell", "date"),
+      col_types = c("text", "numeric", "text", "text", "text", "numeric", "date"),
+      skip = 1
+    )
+    r %>% mutate(
+        cell_line = str_replace_all(cell_line, " ", "_"),
+        condition = str_replace_all(condition, " ", "_")
+      ) %>% 
+      unite("cell_id", c(cell_line, condition, movie, cell), remove=FALSE, sep="-") %>% 
+      mutate(
+        cell_file = file.path(path, glue("{name}.xls")),
+        info_file = fn
+      ) %>% 
+      mutate(date = as.Date(date))
+  }) %>% 
+    mutate_at(vars(name, cell_line, condition), as_factor)
+    
   
   trcol <- map_dfr(meta$info_file, ~readxl::read_excel(.x, sheet="trackid")) %>%
     set_names(c("name", "track_id", "colour")) %>%
