@@ -134,7 +134,7 @@ pl_proportion_map <- function(dp, k=5) {
     mutate(prop = n / sum(n)) %>% 
     ungroup() %>% 
     # a trick to fill missing data with zeroes
-    pivot_wider(id_cols=time_nebd, names_from=state, values_from=prop, values_fill=0) %>%
+    pivot_wider(id_cols=time_nebd, names_from=state, values_from=prop, values_fill=list(prop=0)) %>%
     pivot_longer(-time_nebd, names_to="state", values_to="prop") %>% 
     mutate(state = factor(state, levels=levels(dp$state))) %>% 
     group_by(state) %>%
