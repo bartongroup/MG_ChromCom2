@@ -4,8 +4,10 @@ if(dir.exists(libDir)) .libPaths(libDir)
 library(shiny)
 library(shinycssloaders)
 library(readxl)
+library(caTools)
 library(glue)
 library(plotly)
+library(cowplot)
 library(tidyverse)
 
 source("../setup.R")
@@ -14,14 +16,17 @@ source("../parse.R")
 source("../process.R")
 source("func.R")
 
+options(dplyr.summarise.inform = FALSE)
+
+# Use local data if testing
 dirs <- c(
   "/cluster/gjb_lab/mgierlinski/projects/chromcom2/data",
   "/Users/mgierlinski/Projects/ChromCom2/data"
 )
-
 data.path <- NULL
 for(d in dirs) if(dir.exists(d)) data.path <- d
 
+# Chache file to store processed Excel sheets
 cache.path <- "cache"
 cache.file <- file.path(cache.path, "data.rds")
 
@@ -30,11 +35,9 @@ if(!file.exists(cache.file)) {
   reload_data(data.path, cell_sheets, cache.file)
 }
 
+# Initial parameters for selectInput
 initial_dat <- read_rds(cache.file)
-initial_conditions <- initial_dat$metadata$condition %>% levels()
-initial_cells <- initial_dat$metadata$cell %>% unique()
-
-initial_cell_ids <- initial_dat$metadata$cell_id %>% unique()
+initial_pars <- initial_parameters(initial_dat$metadata)
 min_time <- min(initial_dat$xyz$time_nebd)
 max_time <- max(initial_dat$xyz$time_nebd)
 
@@ -49,26 +52,37 @@ ui <- fluidPage(
     sidebarPanel(
       actionButton("reload", "Reload data"),
       hr(),
-      sliderInput("dist.lightblue", "Black/light blue limit", value=0.5, min=0, max=5, step=0.05),
-      sliderInput("dist.brown", "Blue/brown limit", value=0.75, min=0, max=5, step=0.05),
-      sliderInput("dist.pink", "Red/pink limit", value=0.4, min=0, max=5, step=0.05),
-      sliderInput("black.length", "Black length", value=5, min=0, max=10, step=1),
+      sliderInput("dist.lightblue", "Black/light blue limit", value=0.5, min=0, max=5, step=0.05, ticks=FALSE),
+      sliderInput("dist.brown", "Blue/brown limit", value=0.75, min=0, max=5, step=0.05, ticks=FALSE),
+      sliderInput("dist.pink", "Red/pink limit", value=0.4, min=0, max=5, step=0.05, ticks=FALSE),
+      sliderInput("black.length", "Black length", value=5, min=0, max=10, step=1, ticks=FALSE),
       actionButton("submit", "Submit"),
       hr(),
-      selectInput("cell_id", "Cell ID", choices=initial_cell_ids),
-      sliderInput("time", "Time since NEBD (min)", value=0, min=min_time, max=max_time, step=1)
+      selectInput("cellcon", "Cell line/condition", choices=initial_pars$cellcons)
     ),
     
     mainPanel(
       tabsetPanel(type = "tabs",
-                  tabPanel("Heatmap", plotOutput("map", height="700px") %>% withSpinner(color="#0dc5c1")),
-                  tabPanel("State plot", plotOutput("dist_state_plot", height="500px") %>% withSpinner(color="#0dc5c1")),
-                  tabPanel("Dots", plotlyOutput("dot_plot", height="400px", width="400px") %>% withSpinner(color="#0dc5c1"))
+                  
+        tabPanel("Overview",
+          sliderInput("windowsize", "Running mean window", min=1, max=30, value=20, step=1, round=TRUE, ticks=FALSE),
+          plotOutput("map", height="600px") %>%
+            withSpinner(color="#0dc5c1", type=5, size=0.5)
+        ),
+        
+        tabPanel("Timeline",
+          selectInput("mcell", "Movie/cell no.", choices=initial_pars$mcells),
+          plotOutput("state_timeline", height="500px") %>%
+            withSpinner(color="#0dc5c1", type=5, size=0.5)
+        ),
+        
+        tabPanel("Dots",
+          sliderInput("time", "Time since NEBD (min)", value=0, min=min_time, max=max_time, step=1, round=TRUE, width="100%", ticks=FALSE),
+          plotlyOutput("dot_plot", height="400px", width="400px") %>%
+            withSpinner(color="#0dc5c1", type=5, size=0.5)
+        )
+        
       )
-      
-      #plotOutput("heatmap", height="100px") %>% withSpinner(color="#0dc5c1"),
-      #plotOutput("dist_state_plot", height="500px") %>% withSpinner(color="#0dc5c1"),
-      #plotlyOutput("dot_plot", height="300px", width="300px") %>% withSpinner(color="#0dc5c1")
     )
   )
 )
@@ -100,38 +114,44 @@ server <- function(input, output, session) {
     })
   })
   
+  observeEvent(input$cellcon, {
+    d <- dat()
+    mcells <- d$metadata %>% 
+      filter(cellcon == input$cellcon) %>% 
+      pull(mcell)
+    print(mcells)
+    updateSelectInput(session, "mcell", choices=mcells)
+  })
+  
   dat <- eventReactive(input$submit, {
     if(file.exists(cache.file)) {
       params <- params_from_input()
       read_rds(cache.file) %>% 
-        parse_xyz_data(params)
+        parse_xyz_data(params, unite_pars=TRUE)
     }
   })
   
-  output$dist_state_plot <- renderPlot({
+  output$state_timeline <- renderPlot({
     input$submit
     d <- dat()
     params <- params_from_input()
-    d$parsed %>% 
-      filter(cell_id == input$cell_id) %>% 
-      pl_distances(params)
+    dp <- d$parsed %>% 
+      filter(cellcon == input$cellcon & mcell == input$mcell)
+    plot_grid(pl_state_distance_timeline(dp, params), pl_all_distance_timeline(dp, params), ncol=1, align="v")
   })
   
   output$map <- renderPlot({
     input$submit
     d <- dat()
-    r <- d$parsed %>% 
-      filter(cell_id == input$cell_id) %>% 
-      select(cell_line, condition) %>% 
-      distinct()
-    dp <- d$parsed %>% filter(cell_line == r$cell_line & condition == r$condition)
-    plot_grid(pl_state_map(dp), pl_proportion_map(dp, k=10), ncol=1, align="v")
+    dp <- d$parsed %>% 
+      filter(cellcon == input$cellcon)
+    plot_grid(pl_state_map(dp), pl_proportion_map(dp, k=input$windowsize), ncol=1, align="v")
   })
   
   output$dot_plot <- renderPlotly({
     d <- dat()
     d$xyz %>% 
-      filter(cell_id == input$cell_id & time_nebd == input$time) %>% 
+      filter(cellcon == input$cellcon & mcell == input$mcell & time_nebd == input$time) %>% 
       plot_ly() %>%
       add_trace(type="scatter3d", mode="markers", x = ~x, y = ~y, z = ~z, marker=list(color = ~colour)) %>% 
       layout(font=list(size=9), scene=list(aspectmode="data"))
@@ -146,4 +166,4 @@ shinyApp(ui = ui, server = server)
 
 
 
-# input = list(dist.lightblue = 0.4, dist.brown = 0.75, dist.pink = 0.4, black.length = 5, condition = "TT206", cell = 1)
+# input = list(dist.lightblue = 0.4, dist.brown = 0.75, dist.pink = 0.4, black.length = 5)

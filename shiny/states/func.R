@@ -1,12 +1,28 @@
+# Creates initial parameters for sliders. Returns a list of two vectors:
+# cellcons (cell line/condition) and mcells (movie / cell no)
+initial_parameters <- function(meta) {
+  cellcons <- unique(meta$cellcon)
+  init_cellcon <- cellcons[1]
+  mcells <- meta %>% filter(cellcon == init_cellcon) %>% pull(mcell)
+  init_mcell <- mcells[1] 
+  list(
+    cellcons = cellcons,
+    mcells = mcells
+  )
+}
+
+# Reads Excel diles from the folder "data.path", does initial processing of raw
+# data and saves the result in the cache file. Does not return anything useful.
 reload_data <- function(data.path, cell_sheets, cache.file) {
   info <- get_info(data.path)
   dat <- read_cells(info, cell_sheets) %>% 
-  process_raw_data(with_celldat=FALSE)
+    process_raw_data(with_celldat=FALSE, unite_pars=TRUE)
   write_rds(dat, cache.file)
 }
 
-
-make_state_limit_tb <- function(params) {
+# Creates a tibble based on state transition parameters. Used in
+# pl_state_distance.
+make_state_limit_tb_ <- function(params) {
   pr <- params %>% unlist()
   tibble(
     name = names(pr),
@@ -18,8 +34,9 @@ make_state_limit_tb <- function(params) {
     mutate(state = factor(state, levels=state_colour$state))
 }
 
-
-compact_distances <- function(dp) {
+# Reduce distances a, b, g, r to two distances 1 and 2, just for plotting. Used
+# in pl_state_distance.
+compact_distances_ <- function(dp) {
   dp %>% 
     mutate(
       dist_1 = if_else(n_dot==2, dist_a, if_else(n_dot==3, if_else(dist_r > dist_g, dist_r, dist_g), dist_a)),
@@ -27,11 +44,16 @@ compact_distances <- function(dp) {
     )
 }
 
-pl_state_distance <- function(dp, params) {
+# For a given cell, plot a timeline of distance between dots and their
+# corresponding states. For clarity, only the distance on which selection is
+# based is shown. The number of dots is encoded by shape and the state is
+# encoded with colour. dp is a parsed state table and it must be pre-selected
+# for one cell.
+pl_state_distance_timeline <- function(dp, params) {
   d <- dp %>% 
-    compact_distances() %>% 
+    compact_distances_() %>% 
     mutate(dist_max = pmax(dist_1, dist_2, na.rm=TRUE))
-  dd <- make_state_limit_tb(params)
+  dd <- make_state_limit_tb_(params)
   ds <- drop_na(d)
   ggplot(d, aes(x=time_nebd, y=dist_1, fill=state, shape=factor(n_dot, levels=1:4))) +
     theme_bw() +
@@ -49,7 +71,9 @@ pl_state_distance <- function(dp, params) {
     labs(x="Time since nebd (min)", y=expression(Distance~(mu * m)), shape="Num dots", colour="State")
 }
 
-pl_all_distances <- function(dp, params) {
+# For a given cell, plot a timeline of every distance stored in the parsed
+# table.
+pl_all_distance_timeline <- function(dp, params) {
   d <- dp %>% 
     select(-c(frame, time, letter, cell_line, condition, cell)) %>% 
     pivot_longer(cols = starts_with("dist"))
@@ -77,11 +101,6 @@ pl_all_distances <- function(dp, params) {
     labs(x="Time since nebd (min)", y=expression(Distance~(mu * m)), shape="Num dots", colour="Distance", fill="Distance")
 }
 
-pl_distances <- function(dp, params) {
-  g1 <- pl_state_distance(dp, params)
-  g2 <- pl_all_distances(dp, params)
-  cowplot::plot_grid(g1, g2, align="v", ncol=1)
-}
 
 
 pl_state_map <- function(dp) {
@@ -96,6 +115,7 @@ pl_state_map <- function(dp) {
     ) +
     geom_tile() +
     scale_fill_manual(values=state_colour$colour, drop=FALSE) +
+    scale_x_continuous(breaks=seq(-100, 100, 10)) +
     labs(x="Time since nebd (min)", y=NULL, fill=NULL)
 }
 
@@ -113,6 +133,10 @@ pl_proportion_map <- function(dp, k=5) {
     group_by(time_nebd) %>% 
     mutate(prop = n / sum(n)) %>% 
     ungroup() %>% 
+    # a trick to fill missing data with zeroes
+    pivot_wider(id_cols=time_nebd, names_from=state, values_from=prop, values_fill=0) %>%
+    pivot_longer(-time_nebd, names_to="state", values_to="prop") %>% 
+    mutate(state = factor(state, levels=levels(dp$state))) %>% 
     group_by(state) %>%
     mutate(smooth = runmean(prop, k)) %>% 
   ggplot(aes(x=time_nebd, y=smooth, colour=state)) +
@@ -121,7 +145,7 @@ pl_proportion_map <- function(dp, k=5) {
     geom_line(size=1.5) +
     scale_colour_manual(values=state_colour$colour, drop=FALSE) +
     labs(x="Time since NEBD (min)", y="Proportion") +
-    scale_x_continuous(breaks=seq(-100,100,5)) +
+    scale_x_continuous(breaks=seq(-100, 100, 10)) +
     scale_y_continuous(expand=c(0,0), limits=c(0,1))
     
 }

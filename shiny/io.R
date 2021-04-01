@@ -30,7 +30,7 @@ get_info <- function(path) {
         cell_line = str_replace_all(cell_line, " ", "_"),
         condition = str_replace_all(condition, " ", "_")
       ) %>% 
-      unite("cell_id", c(cell_line, condition, movie, cell), remove=FALSE, sep="-") %>% 
+      unite("cell_id", c(cell_line, condition, movie, cell), remove=FALSE, sep=":") %>% 
       mutate(
         cell_file = file.path(path, glue("{name}.xls")),
         info_file = fn

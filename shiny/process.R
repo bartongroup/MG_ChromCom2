@@ -134,12 +134,17 @@ merge_cell_data <- function(d) {
 #' raw = read_cells(metadata, cell_sheets)
 #' dat = process_raw_data(raw) %>% parse_xyz_data(params)
 #' 
-process_raw_data <- function(raw, with_celldat=TRUE) {
+process_raw_data <- function(raw, with_celldat=TRUE, unite_pars=FALSE) {
   md <- raw$metadata %>% select(cell_id, cell_line, condition, movie, cell)
+  if(unite_pars) {
+    md <- md %>% 
+      unite(cellcon, c(cell_line, condition), sep="-", remove=FALSE) %>% 
+      unite(mcell, c(movie, cell), sep="-", remove=FALSE)
+  }
   celldat <- process_cells_raw_data(raw) 
   xyz <- merge_cell_data(celldat) %>% left_join(md, by="cell_id")
   r <- list(
-    metadata = raw$metadata,
+    metadata = md,
     xyz = xyz
   )
   if(with_celldat) r$celldat <- celldat
@@ -160,9 +165,10 @@ process_raw_data <- function(raw, with_celldat=TRUE) {
 #' raw = read_cells(metadata, cell_sheets)
 #' dat = process_raw_data(raw) %>% parse_xyz_data(params)
 #' 
-parse_xyz_data <- function(d, params) {
+parse_xyz_data <- function(d, params, unite_pars=FALSE) {
   md <- d$metadata %>%
     select(cell_id, cell_line, condition, movie, cell)
+  if(unite_pars) md <- md %>% bind_cols(select(d$metadata, cellcon, mcell))
   parsed <- parse_states(d$xyz, params) %>%
     left_join(md, by="cell_id")
   d$parsed <- parsed
