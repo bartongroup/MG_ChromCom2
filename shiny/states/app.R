@@ -127,7 +127,7 @@ server <- function(input, output, session) {
     if(file.exists(cache.file)) {
       params <- params_from_input()
       read_rds(cache.file) %>% 
-        parse_xyz_data(params, unite_pars=TRUE)
+        parse_xyz_data(params)
     }
   })
   

@@ -30,14 +30,16 @@ get_info <- function(path) {
         cell_line = str_replace_all(cell_line, " ", "_"),
         condition = str_replace_all(condition, " ", "_")
       ) %>% 
-      unite("cell_id", c(cell_line, condition, movie, cell), remove=FALSE, sep=":") %>% 
+      unite(cellcon, c(cell_line, condition), sep="-", remove=FALSE) %>% 
+      unite(mcell, c(movie, cell), sep="-", remove=FALSE) %>% 
+      unite(cell_id, c(cellcon, mcell), remove=FALSE, sep=":") %>% 
       mutate(
         cell_file = file.path(path, glue("{name}.xls")),
         info_file = fn
       ) %>% 
       mutate(date = as.Date(date))
   }) %>% 
-    mutate_at(vars(name, cell_line, condition), as_factor)
+    mutate_at(vars(name, cell_line, condition, cellcon), as_factor)
     
   
   trcol <- map_dfr(meta$info_file, ~readxl::read_excel(.x, sheet="trackid")) %>%

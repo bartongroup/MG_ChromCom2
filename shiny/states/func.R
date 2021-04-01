@@ -16,7 +16,7 @@ initial_parameters <- function(meta) {
 reload_data <- function(data.path, cell_sheets, cache.file) {
   info <- get_info(data.path)
   dat <- read_cells(info, cell_sheets) %>% 
-    process_raw_data(with_celldat=FALSE, unite_pars=TRUE)
+    process_raw_data(with_celldat=FALSE)
   write_rds(dat, cache.file)
 }
 
