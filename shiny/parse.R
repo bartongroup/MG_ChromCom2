@@ -23,7 +23,7 @@ dist_xyz <- function(d, z_correction = 0.85) {
 #' @export
 parse_one_state <- function(ds, params) {
   n_dots <- nrow(ds)
-  
+
   if(n_dots == 1) {
     a <- 0
     b <- 0

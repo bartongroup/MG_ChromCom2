@@ -119,7 +119,6 @@ server <- function(input, output, session) {
     mcells <- d$metadata %>% 
       filter(cellcon == input$cellcon) %>% 
       pull(mcell)
-    print(mcells)
     updateSelectInput(session, "mcell", choices=mcells)
   })
   
