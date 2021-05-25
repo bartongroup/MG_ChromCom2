@@ -41,11 +41,22 @@ get_info <- function(path) {
   }) %>% 
     mutate_at(vars(name, cell_line, condition, cellcon), as_factor)
     
-  
   trcol <- map_dfr(meta$info_file, ~readxl::read_excel(.x, sheet="trackid")) %>%
     set_names(c("name", "track_id", "colour")) %>%
     mutate(track_id = as.character(as.integer(track_id))) %>% 
     left_join(select(meta, name, cell_id), by="name")
+  
+  # check for duplicates
+  dm <- meta %>% add_count(cell_id) %>% filter(n > 1)
+  if(nrow(dm) > 0) {
+    print(dm)
+    stop("Duplicates detected")
+  }
+  tm <- trcol %>% add_count(cell_id, track_id) %>% filter(n > 1)
+  if(nrow(tm) > 0) {
+    print(tm)
+    stop("Duplicated trackID detected")
+  }
   
   list(
     metadata = meta,

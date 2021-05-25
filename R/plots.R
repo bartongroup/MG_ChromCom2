@@ -143,6 +143,7 @@ plot_distance_distribution <- function(dp, params, cex=3) {
     geom_hline(data=make_state_limit_tb(params), aes(yintercept = limit, colour=state), linetype="dotted") +
     geom_beeswarm(cex=cex) +
     scale_colour_manual(values=state_colour$colour, drop=FALSE) +
+    facet_wrap(~condition) +
     labs(x="Number of dots", y="Distance")
 }
 
@@ -184,6 +185,22 @@ plot_state_map <- function(dp) {
       axis.text.y = element_blank()
     ) +
     geom_tile() +
+    facet_wrap(~condition, scales="free") +
     scale_fill_manual(values=state_colour$colour, drop=FALSE) +
     labs(x="Time since nebd (min)", y=NULL, fill=NULL)
+}
+
+
+plot_angle_distribution <- function(dp) {
+  dp %>%
+    filter(!is.na(angle)) %>%
+  ggplot(aes(x=state, y=angle * 180 / pi, colour=state)) +
+    theme_bw() +
+    theme(legend.position = "none") +
+    geom_boxplot(outlier.shape = NA) +
+    geom_beeswarm() +
+    scale_colour_manual(values=state_colour$colour, drop=FALSE) +
+    scale_y_continuous(expand=c(0,0), limits=c(0,90), breaks=c(0,30,60,90)) +
+    facet_wrap(~condition) +
+    labs(x=NULL, y="Angle (deg)")
 }

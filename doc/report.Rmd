@@ -161,7 +161,7 @@ This cartoon figure defines distances a, b, r and g.
 knitr::include_graphics("rules.png")
 ```
 
-### Tracking 3 cells
+### Tracking cells
 
 This figure demonstrates how state tracking works. The shapes indicate number of dots detected, the colour indicates the state. The horizontal dashed lines show the distance limits applied.
 
@@ -177,7 +177,7 @@ readd(fig_cells_map)
 
 What might be of interest, is the distribution of distances between dots. The next figure shows the aggregated distribution across all cells, for two, three and four dots detected. In case of four dots both distances are plotted, hence there are twice as many data points than images. Also, there are pink states below the limit (0.4 µm) - these are the cases where only one distance is below the limit.
 
-```{r fig_distance_distribution, fig.width=5, fig.height=4}
+```{r fig_distance_distribution, fig.width=10, fig.height=4}
 readd(fig_cells_distance_distribution)
 ```
 
@@ -187,6 +187,13 @@ Another plot showing all distances (a, b, r and g):
 readd(fig_all_distances)
 ```
 
+## Angle distribution
+
+Angle distribution between red-red and green-green vectors - only for cases with four dots.
+
+```{r angle_dist, fig.width=8, fig.height=4}
+readd(fig_angle_distribution)
+```
 
 ## Session info
 

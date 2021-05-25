@@ -14,6 +14,36 @@ dist_xyz <- function(d, z_correction = 0.85) {
 }
 
 
+#' Title Cosine of angle between two vectors
+#'
+#' @param x Vector x
+#' @param y Vector y
+#'
+#' @return Cos angle between x and y
+#' @export
+cos_angle <- function(x, y){
+  as.numeric(x %*% y) / (norm(x, type="2") * norm(y, type="2"))
+}
+
+#' Angle between two pairs of dots: red vs green
+#'
+#' @param d Tibble with four rows and columns x, y, z
+#' @param z_correction Correction to z coordinates due to different refraction in oil-based objective
+# and water-based medium with cells.
+#'
+#' @return Angle between vectors red-red and green-green
+#' @export
+angle_xyz <- function(d, z_correction = 0.85) {
+  d$z <- d$z * z_correction
+  d_red <- as.matrix(d[d$colour == "red", c("x", "y", "z")])
+  d_green <- as.matrix(d[d$colour == "green", c("x", "y", "z")])
+  r_red <- d_red[2, ] - d_red[1, ]
+  r_green <- d_green[2, ] - d_green[1, ]
+  mu <- cos_angle(r_red, r_green)
+  acos(abs(mu))
+}
+
+
 #' Parse one state according to our rules
 #'
 #' @param ds A subset of the main data tibble, needs to contain 2-4 rows
@@ -23,6 +53,7 @@ dist_xyz <- function(d, z_correction = 0.85) {
 #' @export
 parse_one_state <- function(ds, params) {
   n_dots <- nrow(ds)
+  angle <- as.numeric(NA)
 
   if(n_dots == 1) {
     a <- 0
@@ -86,6 +117,7 @@ parse_one_state <- function(ds, params) {
       b <- d
     }
     state <- ifelse(a < params$dist.pink & b < params$dist.pink, "red", "pink")
+    angle <- angle_xyz(ds)
   }
   
   tibble(
@@ -98,6 +130,7 @@ parse_one_state <- function(ds, params) {
     dist_b = b,
     dist_r = r,
     dist_g = g,
+    angle = angle,
     state = state
   )
 }

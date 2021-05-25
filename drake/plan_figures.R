@@ -7,10 +7,11 @@ plan_figures <- function() {
   cells <- drake_plan(
     fig_colour_ident_cell_1 = plot_colour_identification(dat$celldat$`TT206-no_siRNA:1_1-1`),
     fig_colour_timeline_cell_1 = plot_colour_timeline(dat, "TT206-no_siRNA:1_1-1"),
-    fig_cells_state_distance = plot_state_distance(dat$parsed, dat$params),
-    fig_all_distances = plot_all_distances(dat$parsed, dat$params),
-    fig_cells_distance_distribution = plot_distance_distribution(dat$parsed, dat$params, cex=1.5),
-    fig_cells_map = plot_state_map(dat$parsed)
+    fig_cells_state_distance = plot_state_distance(dat$parsed %>% filter(condition=="no_siRNA"), dat$params),
+    fig_all_distances = plot_all_distances(dat$parsed %>% filter(condition=="no_siRNA"), dat$params),
+    fig_cells_distance_distribution = plot_distance_distribution(dat$parsed %>% filter(condition=="no_siRNA"), dat$params, cex=1.5),
+    fig_cells_map = plot_state_map(dat$parsed %>% filter(condition=="no_siRNA")),
+    fig_angle_distribution = plot_angle_distribution(dat$parsed)
   )
   
   raw_examples <- drake_plan(
