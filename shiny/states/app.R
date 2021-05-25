@@ -111,6 +111,8 @@ server <- function(input, output, session) {
       incProgress(1/4)
       write_rds(dat, cache.file)
       incProgress(1/4)
+      pars <- initial_parameters(dat$metadata)
+      updateSelectInput(session, "cellcon", choices=pars$cellcons)
     })
   })
   
