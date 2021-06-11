@@ -201,6 +201,11 @@ Here is a timeline of angles, divided into windows of 10 min.
 readd(fig_angle_timeline)
 ```
 
+The next figure shows the relation between maximum of the distances a and b, and the angle.
+
+```{r angle_distance, fig.width=8, fig.height=4}
+readd(fig_distance_angle) 
+```
 
 ## Session info
 
