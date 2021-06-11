@@ -207,6 +207,12 @@ The next figure shows the relation between maximum of the distances a and b, and
 readd(fig_distance_angle) 
 ```
 
+The same figure, but split into time windows.
+
+```{r angle_distance_timeline, fig.width=10, fig.height=5}
+readd(fig_distance_angle_timeline) 
+```
+
 ## Session info
 
 ```{r session_info}

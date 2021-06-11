@@ -13,7 +13,8 @@ plan_figures <- function() {
     fig_cells_map = plot_state_map(dat$parsed %>% filter(condition=="no_siRNA")),
     fig_angle_distribution = plot_angle_distribution(dat$parsed),
     fig_angle_timeline = plot_angle_timeline(dat$parsed),
-    fig_distance_angle = plot_distance_angle(dat$parsed, dat$params)
+    fig_distance_angle = plot_distance_angle(dat$parsed, dat$params),
+    fig_distance_angle_timeline = plot_distance_angle(dat$parsed, dat$params, facet="win")
   )
   
   raw_examples <- drake_plan(
