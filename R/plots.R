@@ -1,3 +1,5 @@
+okabe_ito_palette <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
 make_time_ticks <- function(val.min=-200, val.max=200, lab.step=5) {
   time_breaks <- seq(val.min, val.max, 1)
   time_labels <- rep("", length(time_breaks))
@@ -203,4 +205,19 @@ plot_angle_distribution <- function(dp) {
     scale_y_continuous(expand=c(0,0), limits=c(0,90), breaks=c(0,30,60,90)) +
     facet_wrap(~condition) +
     labs(x=NULL, y="Angle (deg)")
+}
+
+plot_angle_timeline <- function(dp, brks = seq(-50, 50, 10), point.size=1.5, cex=0.8) {
+  dp %>%
+    filter(!is.na(angle)) %>% 
+    mutate(win = cut(time_nebd, breaks=brks)) %>% 
+  ggplot(aes(x=win, y=angle * 180 / pi)) +
+    theme_bw() +
+    theme(panel.grid = element_blank(), legend.position = "bottom") +
+    geom_boxplot(aes(colour=condition), fill="grey90", outlier.shape = NA, width=0.6) +
+    geom_beeswarm(aes(group=condition, fill=state), colour="grey50", shape=21, dodge.width = 0.6, size=point.size, cex=cex) +
+    scale_fill_manual(values=state_colour$colour[6:7], drop=TRUE) +
+    scale_colour_manual(values=okabe_ito_palette[2:3]) + 
+    scale_y_continuous(expand=c(0,0), limits=c(0,90), breaks=c(0,30,60,90)) +
+    labs(x="Time window (min)", y="Angle (deg)")
 }

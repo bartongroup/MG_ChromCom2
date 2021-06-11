@@ -187,13 +187,20 @@ Another plot showing all distances (a, b, r and g):
 readd(fig_all_distances)
 ```
 
-## Angle distribution
+## Red-red/green-green angle
 
 Angle distribution between red-red and green-green vectors - only for cases with four dots.
 
 ```{r angle_dist, fig.width=8, fig.height=4}
 readd(fig_angle_distribution)
 ```
+
+Here is a timeline of angles, divided into windows of 10 min.
+
+```{r angle_time, fig.width=10, fig.height=4}
+readd(fig_angle_timeline)
+```
+
 
 ## Session info
 
