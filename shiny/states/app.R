@@ -1,4 +1,4 @@
-libDir <- "/cluster/gjb_lab/mgierlinski/R_shiny/library/3.6"
+libDir <- "/cluster/gjb_lab/mgierlinski/R_shiny/library/4.1"
 if(dir.exists(libDir)) .libPaths(libDir)
 
 library(shiny)
