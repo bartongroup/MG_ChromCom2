@@ -1,3 +1,5 @@
+library(tidyverse)
+
 state_colour <- tribble(
   ~state, ~colour, ~letter,
   "none", "grey70", "-",

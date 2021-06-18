@@ -2,8 +2,9 @@
 .Rhistory
 .RData
 .Ruserdata
-.drake
 .DS_Store
+_targets/
+temp/
 man
 doc/report_cache/
 doc/report_files/

@@ -121,7 +121,7 @@ plot_state_distance <- function(dp, params) {
     geom_point(size=3, colour="grey50") +
     scale_fill_manual(values=state_colour$colour, drop=FALSE) +
     scale_colour_manual(values=state_colour$colour, drop=FALSE) +
-    guides(colour=FALSE) +
+    guides(colour="none") +
     scale_shape_manual(values=c(20, 21, 24, 23), drop=FALSE) +
     geom_point(aes(y=dist_2), shape=23, size=3, colour="grey50") +
     facet_wrap(~cell_id, ncol=1) +

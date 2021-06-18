@@ -1,0 +1,28 @@
+my_targets <- function() {
+  
+  read_data <- list(
+    tar_target(params, list(dist.lightblue = 0.4, dist.brown = 0.75, dist.pink = 0.4, black.length = 5)),
+    tar_target(info, get_info("data")),
+    tar_target(raw, read_cells(info, cell_sheets)),
+    tar_target(dat, process_raw_data(raw) %>% parse_xyz_data(params))
+  )
+  
+  figures_cells <- list(
+    tar_target(fig_colour_ident_cell_1, plot_colour_identification(dat$celldat$`TT206-no_siRNA:1_1-1`)),
+    tar_target(fig_colour_timeline_cell_1, plot_colour_timeline(dat, "TT206-no_siRNA:1_1-1")),
+    tar_target(fig_cells_state_distance, plot_state_distance(dat$parsed %>% filter(condition=="no_siRNA"), dat$params)),
+    tar_target(fig_all_distances, plot_all_distances(dat$parsed %>% filter(condition=="no_siRNA"), dat$params)),
+    tar_target(fig_cells_distance_distribution, plot_distance_distribution(dat$parsed %>% filter(condition=="no_siRNA"), dat$params, cex=1.5)),
+    tar_target(fig_cells_map, plot_state_map(dat$parsed %>% filter(condition=="no_siRNA"))),
+    tar_target(fig_angle_distribution, plot_angle_distribution(dat$parsed)),
+    tar_target(fig_angle_timeline, plot_angle_timeline(dat$parsed)),
+    tar_target(fig_distance_angle, plot_distance_angle(dat$parsed, dat$params)),
+    tar_target(fig_distance_angle_timeline, plot_distance_angle(dat$parsed, dat$params, facet="win"))
+  )
+
+  
+  c(
+    read_data,
+    figures_cells
+  ) 
+}
