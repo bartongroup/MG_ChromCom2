@@ -1,18 +1,12 @@
 
 #' Distance between two dots
 #'
-#' @param d Tibble with two rows and columns x, y, z
+#' @param m Matrix with two rows and columns with coordinates x, y, z
 #' @param z_correction Correction to z coordinates due to different refraction in oil-based objective
 # and water-based medium with cells.
 #'
 #' @return Distance between the dots.
 #' @export
-dist_xyz_ <- function(d, z_correction = 0.85) {
-  d$z <- d$z * z_correction
-  r <- as.matrix(d[, c("x", "y", "z")])
-  sqrt(sum((r[2,] - r[1,])^2))
-}
-
 dist_xyz <- function(m, z_correction = 0.85) {
   m[, 3] <- z_correction * m[, 3]
   sqrt(sum((m[2,] - m[1,])^2))
@@ -32,22 +26,12 @@ cos_angle <- function(x, y){
 
 #' Angle between two pairs of dots: red vs green
 #'
-#' @param d Tibble with four rows and columns x, y, z
+#' @param m Matrix with four rows and three columns containing x, y, z co-oridnates of four points.
 #' @param z_correction Correction to z coordinates due to different refraction in oil-based objective
 # and water-based medium with cells.
 #'
-#' @return Angle between vectors formed by rows 1-2 and 3-4
+#' @return Angle between vectors from rows 1-2 and 3-4
 #' @export
-angle_xyz_ <- function(d, z_correction = 0.85) {
-  d$z <- d$z * z_correction
-  m1 <- as.matrix(d[c(1,2), c("x", "y", "z")])
-  m2 <- as.matrix(d[c(3,4), c("x", "y", "z")])
-  v1 <- m1[2, ] - m1[1, ]
-  v2 <- m2[2, ] - m2[1, ]
-  mu <- cos_angle(v1, v2)
-  acos(abs(mu))
-}
-
 angle_xyz <- function(m, z_correction = 0.85) {
   m[, 3] <- z_correction * m[, 3]
   v1 <- m[2, ] - m[1, ]
@@ -126,12 +110,12 @@ parse_one_state <- function(ds, params) {
     b <- dist_xyz(m[c(2,4), ])
     c <- dist_xyz(m[c(1,4), ])
     d <- dist_xyz(m[c(2,3), ])
-    g <- dist_xyz(m[c(1,2), ])  # note: "green" is before "red" when sorted
+    g <- dist_xyz(m[c(1,2), ])  # note: "green" is before "red" in our factor
     r <- dist_xyz(m[c(3,4), ])
     # looking for a shorter combination
     # after this, the distances are: a[1,3], b[2,4], g[1,2], r[3,4]
     if(c + d < a + b) {
-      ds <- ds[c(1,2,4,3), ]
+      ds <- ds[c(1,2,4,3), ]  # swap rows 3 and 4
       a <- c
       b <- d
     }
