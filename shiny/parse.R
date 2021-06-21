@@ -7,10 +7,15 @@
 #'
 #' @return Distance between the dots.
 #' @export
-dist_xyz <- function(d, z_correction = 0.85) {
+dist_xyz_ <- function(d, z_correction = 0.85) {
   d$z <- d$z * z_correction
   r <- as.matrix(d[, c("x", "y", "z")])
   sqrt(sum((r[2,] - r[1,])^2))
+}
+
+dist_xyz <- function(m, z_correction = 0.85) {
+  m[, 3] <- z_correction * m[, 3]
+  sqrt(sum((m[2,] - m[1,])^2))
 }
 
 
@@ -33,12 +38,20 @@ cos_angle <- function(x, y){
 #'
 #' @return Angle between vectors formed by rows 1-2 and 3-4
 #' @export
-angle_xyz <- function(d, z_correction = 0.85) {
+angle_xyz_ <- function(d, z_correction = 0.85) {
   d$z <- d$z * z_correction
   m1 <- as.matrix(d[c(1,2), c("x", "y", "z")])
   m2 <- as.matrix(d[c(3,4), c("x", "y", "z")])
   v1 <- m1[2, ] - m1[1, ]
   v2 <- m2[2, ] - m2[1, ]
+  mu <- cos_angle(v1, v2)
+  acos(abs(mu))
+}
+
+angle_xyz <- function(m, z_correction = 0.85) {
+  m[, 3] <- z_correction * m[, 3]
+  v1 <- m[2, ] - m[1, ]
+  v2 <- m[4, ] - m[3, ]
   mu <- cos_angle(v1, v2)
   acos(abs(mu))
 }
@@ -65,7 +78,8 @@ parse_one_state <- function(ds, params) {
   }
   
   else if(n_dots == 2) {
-    d <- dist_xyz(ds)
+    m <- as.matrix(ds[, c("x", "y", "z")])
+    d <- dist_xyz(m)
     # sometimes we see two dots with the same colour
     clr <- ds$colour
     if(clr[1] == clr[2]) {
@@ -91,9 +105,10 @@ parse_one_state <- function(ds, params) {
   else if(n_dots == 3) {
     ds <- ds[order(ds$n_colour), ]  # much faster than arrange
     clr <- ds$colour
-    a <- dist_xyz(ds[c(1,2),])
-    b <- dist_xyz(ds[c(1,3),])
-    d <- dist_xyz(ds[c(2,3),])  # these two have the same colour
+    m <- as.matrix(ds[, c("x", "y", "z")])
+    a <- dist_xyz(m[c(1,2),])
+    b <- dist_xyz(m[c(1,3),])
+    d <- dist_xyz(m[c(2,3),])  # these two have the same colour
     if(clr[2] == "red") {
       r <- d
       g <- 0
@@ -106,12 +121,13 @@ parse_one_state <- function(ds, params) {
   
   else if(n_dots == 4) {
     # find matching pairs, data are already arranged by colour
-    a <- dist_xyz(ds[c(1,3), ])
-    b <- dist_xyz(ds[c(2,4), ])
-    c <- dist_xyz(ds[c(1,4), ])
-    d <- dist_xyz(ds[c(2,3), ])
-    g <- dist_xyz(ds[c(1,2), ])  # note: "green" is before "red" when sorted
-    r <- dist_xyz(ds[c(3,4), ])
+    m <- as.matrix(ds[, c("x", "y", "z")])
+    a <- dist_xyz(m[c(1,3), ])
+    b <- dist_xyz(m[c(2,4), ])
+    c <- dist_xyz(m[c(1,4), ])
+    d <- dist_xyz(m[c(2,3), ])
+    g <- dist_xyz(m[c(1,2), ])  # note: "green" is before "red" when sorted
+    r <- dist_xyz(m[c(3,4), ])
     # looking for a shorter combination
     # after this, the distances are: a[1,3], b[2,4], g[1,2], r[3,4]
     if(c + d < a + b) {
@@ -119,8 +135,8 @@ parse_one_state <- function(ds, params) {
       a <- c
       b <- d
     }
-    angle_ab <- angle_xyz(ds[c(1, 3, 2, 4), ])
-    angle_rg <- angle_xyz(ds)
+    angle_ab <- angle_xyz(m[c(1, 3, 2, 4), ])
+    angle_rg <- angle_xyz(m)
     
     state <- ifelse(a < params$dist.pink & b < params$dist.pink & angle_rg * 180 / pi < params$angle.pink, "red", "pink")
   }
