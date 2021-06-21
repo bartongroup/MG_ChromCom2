@@ -57,6 +57,7 @@ ui <- fluidPage(
       sliderInput("dist.pink", "Red/pink limit", value=0.5, min=0, max=5, step=0.05, ticks=FALSE),
       sliderInput("black.length", "Black length", value=5, min=0, max=10, step=1, ticks=FALSE),
       sliderInput("angle.pink", "Red/pink angle", value=30, min=0, max=90, step=1, ticks=FALSE),
+      checkboxInput("merge.blue", "Merge light/dark blue", value=TRUE),
       actionButton("submit", "Submit"),
       hr(),
       selectInput("cellcon", "Cell line/condition", choices=initial_pars$cellcons)
@@ -99,7 +100,8 @@ server <- function(input, output, session) {
       dist.brown = input$dist.brown,
       dist.pink = input$dist.pink,
       black.length = input$black.length,
-      angle.pink = input$angle.pink
+      angle.pink = input$angle.pink,
+      merge.blue = input$merge.blue
     ))
   }
   
@@ -146,9 +148,10 @@ server <- function(input, output, session) {
   output$map <- renderPlot({
     input$submit
     d <- dat()
+    params <- params_from_input()
     dp <- d$parsed %>% 
       filter(cellcon == input$cellcon)
-    plot_grid(pl_state_map(dp), pl_proportion_map(dp, k=input$windowsize), ncol=1, align="v")
+    plot_grid(pl_state_map(dp, params), pl_proportion_map(dp, k=input$windowsize, params), ncol=1, align="v")
   })
   
   output$dot_plot <- renderPlotly({

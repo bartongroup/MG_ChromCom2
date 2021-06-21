@@ -44,6 +44,18 @@ compact_distances_ <- function(dp) {
     )
 }
 
+# Merge lightblue and blue
+merge_blue_ <- function(dp, params) {
+  if(params$merge.blue) {
+   dp <- dp %>% 
+      mutate(
+        state = replace(state, params$merge.blue & state == "lightblue", "darkblue"),
+        letter = replace(letter, params$merge.blue & letter == "L", "B")
+      )
+  }
+  dp
+}
+
 # For a given cell, plot a timeline of distance between dots and their
 # corresponding states. For clarity, only the distance on which selection is
 # based is shown. The number of dots is encoded by shape and the state is
@@ -52,6 +64,7 @@ compact_distances_ <- function(dp) {
 pl_state_distance_timeline <- function(dp, params) {
   d <- dp %>% 
     compact_distances_() %>% 
+    merge_blue_(params) %>% 
     mutate(dist_max = pmax(dist_1, dist_2, na.rm=TRUE))
   dd <- make_state_limit_tb_(params)
   ds <- drop_na(d)
@@ -74,6 +87,8 @@ pl_state_distance_timeline <- function(dp, params) {
 # For a given cell, plot a timeline of every distance stored in the parsed
 # table.
 pl_all_distance_timeline <- function(dp, params) {
+  dp <- dp %>% merge_blue_(params) 
+  
   d <- dp %>% 
     select(-c(frame, time, letter, cell_line, condition, cell)) %>% 
     pivot_longer(cols = starts_with("dist"))
@@ -103,8 +118,9 @@ pl_all_distance_timeline <- function(dp, params) {
 
 
 
-pl_state_map <- function(dp) {
+pl_state_map <- function(dp, params) {
   dp %>% 
+    merge_blue_(params) %>% 
     unite(local_id, c(movie, cell)) %>% 
     ggplot(aes(x=time_nebd, y=as_factor(local_id) %>% fct_rev(), fill=state)) +
     theme_bw() +
@@ -119,8 +135,9 @@ pl_state_map <- function(dp) {
     labs(x="Time since nebd (min)", y=NULL, fill=NULL)
 }
 
-pl_proportion_map <- function(dp, k=5) {
+pl_proportion_map <- function(dp, k=5, params) {
   dp %>% 
+    merge_blue_(params) %>% 
     #mutate(statelet = recode(as.character(state), 
     #  "lightblue" = "blue",
     #  "darkblue" = "blue",
