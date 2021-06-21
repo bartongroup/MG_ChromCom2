@@ -31,7 +31,7 @@ options(
 ```
 
 ```{r libraries, cache=FALSE}
-library(drake)
+library(targets)
 library(tidyverse)
 library(kableExtra)
 
@@ -86,7 +86,7 @@ Later addition:
 Objects are organised into "tracks", that always refer to one colour, red or green. The software outputs intensities measured in two channels: red and green. Initially, I thought I could simply decide the colour of a dot based on which intensity is larger, red or green. However, some tracks have dots where green \> red or red \> green at different time points. See this example, made for cell_1. Tracks `1000000000` and `1000000101` have intensities on both sides of red=green line.
 
 ```{r colour_id, fig.width=6, fig.height=4}
-readd(fig_colour_ident_cell_1)
+tar_read(fig_colour_ident_cell_1)
 ```
 
 For now, we use manual annotation, that is a track with given ID has a colour assigned manually by John.
@@ -99,7 +99,7 @@ The figure below shows the intensity difference (green - red) for each dot at ea
 
 
 ```{r colour_diff_timeline, fig.width=10, fig.height=4}
-readd(fig_colour_timeline_cell_1) 
+tar_read(fig_colour_timeline_cell_1) 
 ```
 
 Now we see that in most cases green dots have higher green-red difference than red dots, as expected. This holds true for frames around time -8 to -3 min, where red dots have positive green-red: green dots are always greener.
@@ -111,7 +111,7 @@ There are a few issues with this. They are marked with grey boxes. There are a f
 There is only one green dot in the figure. Here is some raw data from this frame.
 
 ```{r raw_m31}
-r <- readd(raw_ex_cell1_m31)
+r <- tar_read(raw_ex_cell1_m31)
 myKable(r$Position, caption="Position")
 myKable(r$`Intensity Median Ch=1 Img=1`, caption="Intensity Median Ch=1 Img=1")
 myKable(r$`Intensity Median Ch=2 Img=1`, caption="Intensity Median Ch=2 Img=1")
@@ -124,7 +124,7 @@ There are two dots in the `Position` sheet, but only one in intensity sheets, fo
 Here we have two red dots in the plot.
 
 ```{r raw_m13}
-r <- readd(raw_ex_cell1_m13)
+r <- tar_read(raw_ex_cell1_m13)
 myKable(r$Position, caption="Position")
 myKable(r$`Intensity Median Ch=1 Img=1`, caption="Intensity Median Ch=1 Img=1")
 myKable(r$`Intensity Median Ch=2 Img=1`, caption="Intensity Median Ch=2 Img=1")
@@ -137,7 +137,7 @@ Just like above, intensity data from track `1000000047` is missing. There are tw
 This is an interesting case.
 
 ```{r raw_p6}
-r <- readd(raw_ex_cell1_p6)
+r <- tar_read(raw_ex_cell1_p6)
 myKable(r$Position, caption="Position")
 myKable(r$`Intensity Median Ch=1 Img=1`, caption="Intensity Median Ch=1 Img=1")
 myKable(r$`Intensity Median Ch=2 Img=1`, caption="Intensity Median Ch=2 Img=1")
@@ -166,25 +166,25 @@ knitr::include_graphics("rules.png")
 This figure demonstrates how state tracking works. The shapes indicate number of dots detected, the colour indicates the state. The horizontal dashed lines show the distance limits applied.
 
 ```{r fig_example_tracks, fig.width=10, fig.height=25}
-readd(fig_cells_state_distance)
+tar_read(fig_cells_state_distance)
 ```
 
 This is a more traditional look at the data:
 
 ```{r fig_cells_map, fig.width=10, fig.height=6}
-readd(fig_cells_map)
+tar_read(fig_cells_map)
 ```
 
 What might be of interest, is the distribution of distances between dots. The next figure shows the aggregated distribution across all cells, for two, three and four dots detected. In case of four dots both distances are plotted, hence there are twice as many data points than images. Also, there are pink states below the limit (0.4 µm) - these are the cases where only one distance is below the limit.
 
 ```{r fig_distance_distribution, fig.width=10, fig.height=4}
-readd(fig_cells_distance_distribution)
+tar_read(fig_cells_distance_distribution)
 ```
 
 Another plot showing all distances (a, b, r and g):
 
 ```{r fig_all_distances, fig.width=10, fig.height=25}
-readd(fig_all_distances)
+tar_read(fig_all_distances)
 ```
 
 ## Red-red/green-green angle
@@ -192,25 +192,25 @@ readd(fig_all_distances)
 Angle distribution between red-red and green-green vectors - only for cases with four dots.
 
 ```{r angle_dist, fig.width=8, fig.height=4}
-readd(fig_angle_distribution)
+tar_read(fig_angle_distribution)
 ```
 
 Here is a timeline of angles, divided into windows of 10 min.
 
 ```{r angle_time, fig.width=10, fig.height=4}
-readd(fig_angle_timeline)
+tar_read(fig_angle_timeline)
 ```
 
 The next figure shows the relation between maximum of the distances a and b, and the angle.
 
 ```{r angle_distance, fig.width=8, fig.height=4}
-readd(fig_distance_angle) 
+tar_read(fig_distance_angle) 
 ```
 
 The same figure, but split into time windows.
 
-```{r angle_distance_timeline, fig.width=10, fig.height=5}
-readd(fig_distance_angle_timeline) 
+```{r angle_distance_timeline, fig.width=10, fig.height=3}
+tar_read(fig_distance_angle_timeline) 
 ```
 
 ## Session info

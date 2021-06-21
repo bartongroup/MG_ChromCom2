@@ -54,8 +54,9 @@ ui <- fluidPage(
       hr(),
       sliderInput("dist.lightblue", "Black/light blue limit", value=0.5, min=0, max=5, step=0.05, ticks=FALSE),
       sliderInput("dist.brown", "Blue/brown limit", value=0.75, min=0, max=5, step=0.05, ticks=FALSE),
-      sliderInput("dist.pink", "Red/pink limit", value=0.4, min=0, max=5, step=0.05, ticks=FALSE),
+      sliderInput("dist.pink", "Red/pink limit", value=0.5, min=0, max=5, step=0.05, ticks=FALSE),
       sliderInput("black.length", "Black length", value=5, min=0, max=10, step=1, ticks=FALSE),
+      sliderInput("angle.pink", "Red/pink angle", value=30, min=0, max=90, step=1, ticks=FALSE),
       actionButton("submit", "Submit"),
       hr(),
       selectInput("cellcon", "Cell line/condition", choices=initial_pars$cellcons)
@@ -97,7 +98,8 @@ server <- function(input, output, session) {
       dist.lightblue = input$dist.lightblue,
       dist.brown = input$dist.brown,
       dist.pink = input$dist.pink,
-      black.length = input$black.length
+      black.length = input$black.length,
+      angle.pink = input$angle.pink
     ))
   }
   

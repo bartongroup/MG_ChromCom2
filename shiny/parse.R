@@ -31,15 +31,15 @@ cos_angle <- function(x, y){
 #' @param z_correction Correction to z coordinates due to different refraction in oil-based objective
 # and water-based medium with cells.
 #'
-#' @return Angle between vectors red-red and green-green
+#' @return Angle between vectors formed by rows 1-2 and 3-4
 #' @export
 angle_xyz <- function(d, z_correction = 0.85) {
   d$z <- d$z * z_correction
-  d_red <- as.matrix(d[d$colour == "red", c("x", "y", "z")])
-  d_green <- as.matrix(d[d$colour == "green", c("x", "y", "z")])
-  r_red <- d_red[2, ] - d_red[1, ]
-  r_green <- d_green[2, ] - d_green[1, ]
-  mu <- cos_angle(r_red, r_green)
+  m1 <- as.matrix(d[c(1,2), c("x", "y", "z")])
+  m2 <- as.matrix(d[c(3,4), c("x", "y", "z")])
+  v1 <- m1[2, ] - m1[1, ]
+  v2 <- m2[2, ] - m2[1, ]
+  mu <- cos_angle(v1, v2)
   acos(abs(mu))
 }
 
@@ -53,7 +53,8 @@ angle_xyz <- function(d, z_correction = 0.85) {
 #' @export
 parse_one_state <- function(ds, params) {
   n_dots <- nrow(ds)
-  angle <- as.numeric(NA)
+  angle_ab <- as.numeric(NA)
+  angle_rg <- as.numeric(NA)
 
   if(n_dots == 1) {
     a <- 0
@@ -88,7 +89,7 @@ parse_one_state <- function(ds, params) {
   }
   
   else if(n_dots == 3) {
-    ds <- ds %>% arrange(n_colour)
+    ds <- ds[order(ds$n_colour), ]  # much faster than arrange
     clr <- ds$colour
     a <- dist_xyz(ds[c(1,2),])
     b <- dist_xyz(ds[c(1,3),])
@@ -104,23 +105,28 @@ parse_one_state <- function(ds, params) {
   }
   
   else if(n_dots == 4) {
-    # find matching pairs
-    ds <- ds %>% arrange(colour)
+    # find matching pairs, data are already arranged by colour
     a <- dist_xyz(ds[c(1,3), ])
     b <- dist_xyz(ds[c(2,4), ])
     c <- dist_xyz(ds[c(1,4), ])
     d <- dist_xyz(ds[c(2,3), ])
     g <- dist_xyz(ds[c(1,2), ])  # note: "green" is before "red" when sorted
     r <- dist_xyz(ds[c(3,4), ])
+    # looking for a shorter combination
+    # after this, the distances are: a[1,3], b[2,4], g[1,2], r[3,4]
     if(c + d < a + b) {
+      ds <- ds[c(1,2,4,3), ]
       a <- c
       b <- d
     }
-    state <- ifelse(a < params$dist.pink & b < params$dist.pink, "red", "pink")
-    angle <- angle_xyz(ds)
+    angle_ab <- angle_xyz(ds[c(1, 3, 2, 4), ])
+    angle_rg <- angle_xyz(ds)
+    
+    state <- ifelse(a < params$dist.pink & b < params$dist.pink & angle_rg * 180 / pi < params$angle.pink, "red", "pink")
   }
   
-  tibble(
+  # 'c' is much faster than 'tibble' or 'data.frame'. However, it returns a vector of chr, so needs conversion later
+  c(
     cell_id = ds$cell_id[1],
     frame = ds$frame[1],
     time = ds$time[1],
@@ -130,7 +136,8 @@ parse_one_state <- function(ds, params) {
     dist_b = b,
     dist_r = r,
     dist_g = g,
-    angle = angle,
+    angle_ab = angle_ab,
+    angle_rg = angle_rg,
     state = state
   )
 }
@@ -177,8 +184,10 @@ parse_black <- function(d, params) {
 #' @export
 parse_states <- function(xyz, params) {
   xyz %>% 
+    arrange(colour) %>% 
     group_split(cell_id, frame) %>% 
     map_dfr(~parse_one_state(.x, params)) %>% 
+    mutate_at(vars(frame, time, time_nebd, dist_a, dist_b, dist_r, dist_g, angle_ab, angle_rg), as.numeric) %>%
     left_join(state_colour %>% select(state, letter), by="state") %>% 
     mutate(
       state = factor(state, levels=state_colour$state),

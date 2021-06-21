@@ -195,8 +195,8 @@ plot_state_map <- function(dp) {
 
 plot_angle_distribution <- function(dp) {
   dp %>%
-    filter(!is.na(angle)) %>%
-  ggplot(aes(x=state, y=angle * 180 / pi, colour=state)) +
+    filter(!is.na(angle_rg)) %>%
+  ggplot(aes(x=state, y=angle_rg * 180 / pi, colour=state)) +
     theme_bw() +
     theme(legend.position = "none") +
     geom_boxplot(outlier.shape = NA) +
@@ -209,9 +209,9 @@ plot_angle_distribution <- function(dp) {
 
 plot_angle_timeline <- function(dp, brks = seq(-50, 50, 10), point.size=1.5, cex=0.8) {
   dp %>%
-    filter(!is.na(angle)) %>% 
+    filter(!is.na(angle_rg)) %>% 
     mutate(win = cut(time_nebd, breaks=brks)) %>% 
-  ggplot(aes(x=win, y=angle * 180 / pi)) +
+  ggplot(aes(x=win, y=angle_rg * 180 / pi)) +
     theme_bw() +
     theme(panel.grid = element_blank(), legend.position = "bottom") +
     geom_boxplot(aes(colour=condition), fill="grey90", outlier.shape = NA, width=0.6) +
@@ -224,10 +224,12 @@ plot_angle_timeline <- function(dp, brks = seq(-50, 50, 10), point.size=1.5, cex
 
 plot_distance_angle <- function(dp, params, brks = seq(-50, 50, 10), facet="condition") {
   g <- dp %>%
-    filter(!is.na(angle)) %>%
-    mutate(ab = pmax(dist_a,dist_b)) %>%
+    mutate(ab = pmax(dist_a, dist_b)) %>%
     mutate(win = cut(time_nebd, breaks=brks)) %>% 
-  ggplot(aes(x=ab, y=angle * 180 / pi, fill=state)) +
+    select(ab, win, angle_ab, angle_rg, state, condition) %>% 
+    pivot_longer(c(angle_ab, angle_rg)) %>% 
+    drop_na() %>% 
+  ggplot(aes(x=ab, y=value * 180 / pi, fill=state)) +
     theme_bw() +
     theme(panel.grid = element_blank()) +
     geom_point(shape=21, colour="grey50") +
@@ -236,8 +238,8 @@ plot_distance_angle <- function(dp, params, brks = seq(-50, 50, 10), facet="cond
     scale_y_continuous(expand=c(0,0), limits=c(0,90), breaks=c(0,30,60,90)) +
     labs(x="Max(a, b)", y="Angle (deg)")
   if(facet == "condition") {
-    g <- g + facet_wrap(~condition)
+    g <- g + facet_grid(name~condition)
   } else {
-    g <- g + facet_wrap(~win, ncol=5)
+    g <- g + facet_grid(name~win)
   }
 }

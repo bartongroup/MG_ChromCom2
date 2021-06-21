@@ -137,7 +137,7 @@ merge_cell_data <- function(d) {
 process_raw_data <- function(raw, with_celldat=TRUE) {
   md <- raw$metadata %>% select(cell_id, cell_line, condition, movie, cell, cellcon, mcell)
   celldat <- process_cells_raw_data(raw) 
-  xyz <- merge_cell_data(celldat) %>% left_join(md, by="cell_id")
+  xyz <- merge_cell_data(celldat) %>% left_join(md, by="cell_id") %>% mutate(colour = factor(colour, levels=c("green", "red")))
   r <- list(
     metadata = md,
     xyz = xyz

@@ -1,7 +1,7 @@
 my_targets <- function() {
   
   read_data <- list(
-    tar_target(params, list(dist.lightblue = 0.4, dist.brown = 0.75, dist.pink = 0.4, black.length = 5)),
+    tar_target(params, list(dist.lightblue = 0.4, dist.brown = 0.75, dist.pink = 0.5, black.length = 5, angle.pink = 30)),
     tar_target(info, get_info("data")),
     tar_target(raw, read_cells(info, cell_sheets)),
     tar_target(dat, process_raw_data(raw) %>% parse_xyz_data(params))
@@ -20,9 +20,15 @@ my_targets <- function() {
     tar_target(fig_distance_angle_timeline, plot_distance_angle(dat$parsed, dat$params, facet="win"))
   )
 
+  raw_examples <- list(
+    tar_target(raw_ex_cell1_m31, get_timepoint_raw_data(raw, dat$xyz, "TT206-no_siRNA:1_1-1", -31)),
+    tar_target(raw_ex_cell1_m13, get_timepoint_raw_data(raw, dat$xyz, "TT206-no_siRNA:1_1-1", -13)),
+    tar_target(raw_ex_cell1_p6, get_timepoint_raw_data(raw, dat$xyz, "TT206-no_siRNA:1_1-1", 6))
+  )
   
   c(
     read_data,
+    raw_examples,
     figures_cells
   ) 
 }
