@@ -1,7 +1,17 @@
 my_targets <- function() {
   
+  setup <- list(
+    tar_target(params, list(
+      dist.lightblue = 0.4,
+      dist.brown = 0.75,
+      dist.pink = 0.5,
+      black.length = 5,
+      angle.pink = 30,
+      pink.red.rule = "a_and_b_and_angle"
+    ))
+  )
+  
   read_data <- list(
-    tar_target(params, list(dist.lightblue = 0.4, dist.brown = 0.75, dist.pink = 0.5, black.length = 5, angle.pink = 30)),
     tar_target(info, get_info("data")),
     tar_target(raw, read_cells(info, cell_sheets)),
     tar_target(dat, process_raw_data(raw) %>% parse_xyz_data(params))
@@ -27,6 +37,7 @@ my_targets <- function() {
   )
   
   c(
+    setup,
     read_data,
     raw_examples,
     figures_cells

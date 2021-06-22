@@ -39,7 +39,7 @@ get_info <- function(path) {
       ) %>% 
       mutate(date = as.Date(date))
   }) %>% 
-    mutate_at(vars(name, cell_line, condition, cellcon), as_factor)
+    mutate_at(vars(name, cell_line, condition, cellcon, movie, mcell), as_factor)
     
   trcol <- map_dfr(meta$info_file, ~readxl::read_excel(.x, sheet="trackid")) %>%
     set_names(c("name", "track_id", "colour")) %>%

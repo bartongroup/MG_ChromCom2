@@ -124,9 +124,12 @@ merge_cell_data <- function(d) {
 #' object (created by read_cells) and creates a list of coordinates and metadata.
 #'
 #' @param raw Object with raw data.
+#' @param z_correction Correction to z coordinates due to different refraction in oil-based objective
+# and water-based medium with cells.
 #' @param with_celldat Logical if the output object should include input raw data.
 #'
 #' @return List of metadata, xyz, parsed, params and (optional) celldat.
+#' Only xyz contains corrected z-coordinate, celldat contains original raw coordinates.
 #' @export
 #'
 #' @examples
@@ -134,10 +137,15 @@ merge_cell_data <- function(d) {
 #' raw = read_cells(metadata, cell_sheets)
 #' dat = process_raw_data(raw) %>% parse_xyz_data(params)
 #' 
-process_raw_data <- function(raw, with_celldat=TRUE) {
+process_raw_data <- function(raw, z_correction = 0.85, with_celldat=TRUE) {
   md <- raw$metadata %>% select(cell_id, cell_line, condition, movie, cell, cellcon, mcell)
   celldat <- process_cells_raw_data(raw) 
-  xyz <- merge_cell_data(celldat) %>% left_join(md, by="cell_id") %>% mutate(colour = factor(colour, levels=c("green", "red")))
+  xyz <- merge_cell_data(celldat) %>%
+    left_join(md, by="cell_id") %>%
+    mutate(
+      z = z * z_correction,
+      colour = factor(colour, levels=c("green", "red"))
+    )
   r <- list(
     metadata = md,
     xyz = xyz

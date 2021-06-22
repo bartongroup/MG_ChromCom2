@@ -41,6 +41,8 @@ initial_pars <- initial_parameters(initial_dat$metadata)
 min_time <- min(initial_dat$xyz$time_nebd)
 max_time <- max(initial_dat$xyz$time_nebd)
 
+pinkred_rules <- c("a_and_b_and_angle", "a_or_b_and_angle")
+
 
 #########################################
 
@@ -57,6 +59,7 @@ ui <- fluidPage(
       sliderInput("dist.pink", "Red/pink limit", value=0.5, min=0, max=5, step=0.05, ticks=FALSE),
       sliderInput("black.length", "Black length", value=5, min=0, max=10, step=1, ticks=FALSE),
       sliderInput("angle.pink", "Red/pink angle", value=30, min=0, max=90, step=1, ticks=FALSE),
+      selectInput("pink.red.rule", "Pink/red rule", choices=pinkred_rules),
       checkboxInput("merge.blue", "Merge light/dark blue", value=TRUE),
       actionButton("submit", "Submit"),
       hr(),
@@ -101,7 +104,8 @@ server <- function(input, output, session) {
       dist.pink = input$dist.pink,
       black.length = input$black.length,
       angle.pink = input$angle.pink,
-      merge.blue = input$merge.blue
+      merge.blue = input$merge.blue,
+      pink.red.rule = input$pink.red.rule
     ))
   }
   

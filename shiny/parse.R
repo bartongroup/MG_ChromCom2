@@ -2,13 +2,10 @@
 #' Distance between two dots
 #'
 #' @param m Matrix with two rows and columns with coordinates x, y, z
-#' @param z_correction Correction to z coordinates due to different refraction in oil-based objective
-# and water-based medium with cells.
 #'
 #' @return Distance between the dots.
 #' @export
-dist_xyz <- function(m, z_correction = 0.85) {
-  m[, 3] <- z_correction * m[, 3]
+dist_xyz <- function(m) {
   sqrt(sum((m[2,] - m[1,])^2))
 }
 
@@ -27,13 +24,10 @@ cos_angle <- function(x, y){
 #' Angle between two pairs of dots: red vs green
 #'
 #' @param m Matrix with four rows and three columns containing x, y, z co-oridnates of four points.
-#' @param z_correction Correction to z coordinates due to different refraction in oil-based objective
-# and water-based medium with cells.
 #'
-#' @return Angle between vectors from rows 1-2 and 3-4
+#' @return Angle between vectors from rows 1-2 and 3-4 (in radians)
 #' @export
-angle_xyz <- function(m, z_correction = 0.85) {
-  m[, 3] <- z_correction * m[, 3]
+angle_xyz <- function(m) {
   v1 <- m[2, ] - m[1, ]
   v2 <- m[4, ] - m[3, ]
   mu <- cos_angle(v1, v2)
@@ -122,7 +116,13 @@ parse_one_state <- function(ds, params) {
     angle_ab <- angle_xyz(m[c(1, 3, 2, 4), ])
     angle_rg <- angle_xyz(m)
     
-    state <- ifelse(a < params$dist.pink & b < params$dist.pink & angle_rg * 180 / pi < params$angle.pink, "red", "pink")
+    if(params$pink.red.rule == "a_and_b_and_angle") {
+      cnd <- a < params$dist.pink & b < params$dist.pink & angle_rg * 180 / pi < params$angle.pink
+    } else if(params$pink.red.rule == "a_or_b_and_angle") {
+      cnd <- (a < params$dist.pink | b < params$dist.pink) & angle_rg * 180 / pi < params$angle.pink
+    }
+    
+    state <- ifelse(cnd, "red", "pink")
   }
   
   # 'c' is much faster than 'tibble' or 'data.frame'. However, it returns a vector of chr, so needs conversion later
@@ -184,6 +184,7 @@ parse_black <- function(d, params) {
 #' @export
 parse_states <- function(xyz, params) {
   xyz %>% 
+    select(cell_id, frame, x, y, z, n_colour, colour, time, time_nebd) %>% 
     arrange(colour) %>% 
     group_split(cell_id, frame) %>% 
     map_dfr(~parse_one_state(.x, params)) %>% 
