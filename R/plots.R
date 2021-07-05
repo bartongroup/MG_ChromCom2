@@ -96,8 +96,7 @@ make_state_limit_tb <- function(params) {
   ) %>% 
     filter(str_detect(name, "dist.")) %>% 
     mutate(limit = as.numeric(limit)) %>% 
-    separate(name, c("what", "state")) %>% 
-    mutate(state = factor(state, levels=state_colour$state))
+    separate(name, c("what", "states"), sep="\\.")
 }
 
 compact_distances <- function(dp) {
@@ -116,7 +115,7 @@ plot_state_distance <- function(dp, params) {
   ggplot(aes(x=time_nebd, y=dist_1, fill=state, shape=factor(n_dot, levels=1:4))) +
     theme_bw() +
     theme(panel.grid = element_blank()) +
-    geom_hline(data=make_state_limit_tb(params), aes(yintercept = limit, colour=state), linetype="dotted") +
+    geom_hline(data=make_state_limit_tb(params), aes(yintercept = limit), linetype="dotted") +
     geom_segment(aes(xend=time_nebd, yend=0, y=dist_max), colour="grey80") +
     geom_point(size=3, colour="grey50") +
     scale_fill_manual(values=state_colour$colour, drop=FALSE) +
@@ -142,7 +141,7 @@ plot_distance_distribution <- function(dp, params, cex=3) {
       legend.position = "none",
       panel.grid = element_blank()
     ) +
-    geom_hline(data=make_state_limit_tb(params), aes(yintercept = limit, colour=state), linetype="dotted") +
+    geom_hline(data=make_state_limit_tb(params), aes(yintercept = limit), linetype="dotted") +
     geom_beeswarm(cex=cex) +
     scale_colour_manual(values=state_colour$colour, drop=FALSE) +
     facet_wrap(~condition) +
@@ -216,7 +215,7 @@ plot_angle_timeline <- function(dp, brks = seq(-50, 50, 10), point.size=1.5, cex
     theme(panel.grid = element_blank(), legend.position = "bottom") +
     geom_boxplot(aes(colour=condition), fill="grey90", outlier.shape = NA, width=0.6) +
     geom_beeswarm(aes(group=condition, fill=state), colour="grey50", shape=21, dodge.width = 0.6, size=point.size, cex=cex) +
-    scale_fill_manual(values=state_colour$colour[6:7], drop=TRUE) +
+    scale_fill_manual(values=state_colour$colour[5:7], drop=TRUE) +
     scale_colour_manual(values=okabe_ito_palette[2:3]) + 
     scale_y_continuous(expand=c(0,0), limits=c(0,90), breaks=c(0,30,60,90)) +
     labs(x="Time window (min)", y="Angle (deg)")
@@ -234,7 +233,7 @@ plot_distance_angle <- function(dp, params, brks = seq(-50, 50, 10), facet="cond
     theme(panel.grid = element_blank()) +
     geom_point(shape=21, colour="grey50") +
     geom_vline(xintercept = params$dist.red_pink, linetype = "dashed") +
-    scale_fill_manual(values=state_colour$colour[6:7], drop=TRUE) +
+    scale_fill_manual(values=state_colour$colour[5:7], drop=TRUE) +
     scale_y_continuous(expand=c(0,0), limits=c(0,90), breaks=c(0,30,60,90)) +
     labs(x="Max(a, b)", y="Angle (deg)")
   if(facet == "condition") {
