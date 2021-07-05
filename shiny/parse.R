@@ -38,7 +38,7 @@ angle_xyz <- function(m) {
 #' Parse one state according to our rules
 #'
 #' @param ds A subset of the main data tibble, needs to contain 2-4 rows
-#' @param params Parsing parameters, a list with dist.lightblue, dist.brown, dist.pink and black.length
+#' @param params Parsing parameters - a list
 #'
 #' @return A tibble with parsed data.
 #' @export
@@ -94,7 +94,7 @@ parse_one_state <- function(ds, params) {
       r <- 0
       g <- d
     }
-    state <- ifelse(d > params$dist.brown, "brown", "darkblue")
+    state <- ifelse(d > params$dist.darkblue_brown, "brown", "darkblue")
   }
   
   else if(n_dots == 4) {
@@ -116,13 +116,14 @@ parse_one_state <- function(ds, params) {
     angle_ab <- angle_xyz(m[c(1, 3, 2, 4), ])
     angle_rg <- angle_xyz(m)
     
-    if(params$pink.red.rule == "a_and_b_and_angle") {
-      cnd <- a < params$dist.pink & b < params$dist.pink & angle_rg * 180 / pi < params$angle.pink
-    } else if(params$pink.red.rule == "a_or_b_and_angle") {
-      cnd <- (a < params$dist.pink | b < params$dist.pink) & angle_rg * 180 / pi < params$angle.pink
+    if(params$rule.red_pink == "a_and_b_and_angle") {
+      cnd <- a < params$dist.red_pink & b < params$dist.red_pink & angle_rg * 180 / pi < params$angle.red_pink
+    } else if(params$rule.red_pink == "a_or_b_and_angle") {
+      cnd <- (a < params$dist.red_pink | b < params$dist.red_pink) & angle_rg * 180 / pi < params$angle.red_pink
     }
     
     state <- ifelse(cnd, "red", "pink")
+    if(g < params$dist.darkblue_redpink | r < params$dist.darkblue_redpink) state <- "brown"
   }
   
   # 'c' is much faster than 'tibble' or 'data.frame'. However, it returns a vector of chr, so needs conversion later
@@ -144,7 +145,7 @@ parse_one_state <- function(ds, params) {
 
 #' Parse black state
 #'
-#' "Black" state is when two dots are closer than a limit "dist.lightblue" for
+#' "Black" state is when two dots are closer than a limit "dist.black_lightblue" for
 #' at least "black.length" contiguous time points. Since this require several
 #' time points, this state cannot be identified by `parse_one_state` function.
 #'
@@ -157,7 +158,7 @@ parse_black <- function(d, params) {
   d %>% 
     group_split(cell_id) %>% 
     map_dfr(function(w) {
-      possible_black <- w$state == "lightblue" & w$dist_a < params$dist.lightblue
+      possible_black <- w$state == "lightblue" & w$dist_a < params$dist.black_lightblue
       r <- rle(possible_black)
       tb <- tibble(
         length = r$lengths,
@@ -178,7 +179,7 @@ parse_black <- function(d, params) {
 #' This function is used internally by `process_parse_raw_data`
 #'
 #' @param xyz Tibble with xyz coordinates and colours, created by `merge_cell_data`
-#' @param params Parsing parameters, a list with dist.lightblue, dist.brown, dist.pink and black.length
+#' @param params Parsing parameters, a list with dist.black_lightblue, dist.darkblue_brown, dist.red_pink and black.length
 #'
 #' @return A tibble with parsed states
 #' @export

@@ -158,7 +158,7 @@ process_raw_data <- function(raw, z_correction = 0.85, with_celldat=TRUE) {
 #' Parse processed xyz data
 #'
 #' @param d Processed data created by `process_raw_data`
-#' @param params List with parsing parameters. Should contain dist.lightblue, dist.brown, dist.pink and black.length.
+#' @param params List with parsing parameters.
 #'
 #' @return Original object with "parsed" tibble added.
 #' @export

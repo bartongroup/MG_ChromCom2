@@ -41,7 +41,7 @@ initial_pars <- initial_parameters(initial_dat$metadata)
 min_time <- min(initial_dat$xyz$time_nebd)
 max_time <- max(initial_dat$xyz$time_nebd)
 
-pinkred_rules <- c("a_and_b_and_angle", "a_or_b_and_angle")
+red_pink_rules <- c("a_and_b_and_angle", "a_or_b_and_angle")
 
 
 #########################################
@@ -54,13 +54,14 @@ ui <- fluidPage(
     sidebarPanel(
       actionButton("reload", "Reload data"),
       hr(),
-      sliderInput("dist.lightblue", "Black/light blue limit", value=0.5, min=0, max=5, step=0.05, ticks=FALSE),
-      sliderInput("dist.brown", "Blue/brown limit", value=0.75, min=0, max=5, step=0.05, ticks=FALSE),
-      sliderInput("dist.pink", "Red/pink limit", value=0.5, min=0, max=5, step=0.05, ticks=FALSE),
-      sliderInput("black.length", "Black length", value=5, min=0, max=10, step=1, ticks=FALSE),
-      sliderInput("angle.pink", "Red/pink angle", value=30, min=0, max=90, step=1, ticks=FALSE),
-      selectInput("pink.red.rule", "Pink/red rule", choices=pinkred_rules),
-      checkboxInput("merge.blue", "Merge light/dark blue", value=TRUE),
+      #sliderInput("dist.black_lightblue", "Black/light blue limit", value=0.5, min=0, max=5, step=0.05, ticks=FALSE),
+      sliderInput("dist.darkblue_brown", "Blue/brown limit", value=0.75, min=0, max=5, step=0.05, ticks=FALSE),
+      sliderInput("dist.red_pink", "Red/pink limit", value=0.5, min=0, max=5, step=0.05, ticks=FALSE),
+      #sliderInput("black.length", "Black length", value=5, min=0, max=10, step=1, ticks=FALSE),
+      sliderInput("dist.darkblue_redpink", "Brown/red-pink limit", value=0.4, min=0, max=1, step=0.05, ticks=FALSE),
+      sliderInput("angle.red_pink", "Red/pink angle", value=30, min=0, max=90, step=1, ticks=FALSE),
+      selectInput("rule.red_pink", "Red/pink rule", choices=red_pink_rules),
+      #checkboxInput("merge.blue", "Merge light/dark blue", value=TRUE),
       actionButton("submit", "Submit"),
       hr(),
       selectInput("cellcon", "Cell line/condition", choices=initial_pars$cellcons)
@@ -99,13 +100,17 @@ server <- function(input, output, session) {
   # The plot will be updated only on "sumbit"
   params_from_input <- function() {
     isolate(list(
-      dist.lightblue = input$dist.lightblue,
-      dist.brown = input$dist.brown,
-      dist.pink = input$dist.pink,
-      black.length = input$black.length,
-      angle.pink = input$angle.pink,
-      merge.blue = input$merge.blue,
-      pink.red.rule = input$pink.red.rule
+      #dist.black_lightblue = input$dist_lightblue,
+      dist.black_lightblue = 0,
+      dist.darkblue_brown = input$dist.darkblue_brown,
+      dist.darkblue_redpink = input$dist.darkblue_redpink,
+      dist.red_pink = input$dist.red_pink,
+      #black.length = input$black.length,
+      black.length = 0,
+      angle.red_pink = input$angle.red_pink,
+      #merge.blue = input$merge.blue,
+      merge.blue = TRUE,
+      rule.red_pink = input$rule.red_pink
     ))
   }
   
@@ -176,4 +181,4 @@ shinyApp(ui = ui, server = server)
 
 
 
-# input = list(dist.lightblue = 0.4, dist.brown = 0.75, dist.pink = 0.4, black.length = 5)
+# input = list(dist.black_lightblue = 0.4, dist.darkblue_brown = 0.75, dist.red_pink = 0.4, black.length = 5)

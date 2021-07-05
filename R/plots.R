@@ -233,7 +233,7 @@ plot_distance_angle <- function(dp, params, brks = seq(-50, 50, 10), facet="cond
     theme_bw() +
     theme(panel.grid = element_blank()) +
     geom_point(shape=21, colour="grey50") +
-    geom_vline(xintercept = params$dist.pink, linetype = "dashed") +
+    geom_vline(xintercept = params$dist.red_pink, linetype = "dashed") +
     scale_fill_manual(values=state_colour$colour[6:7], drop=TRUE) +
     scale_y_continuous(expand=c(0,0), limits=c(0,90), breaks=c(0,30,60,90)) +
     labs(x="Max(a, b)", y="Angle (deg)")

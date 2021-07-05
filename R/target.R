@@ -2,12 +2,13 @@ my_targets <- function() {
   
   setup <- list(
     tar_target(params, list(
-      dist.lightblue = 0.4,
-      dist.brown = 0.75,
-      dist.pink = 0.5,
+      dist.black_lightblue = 0.4,
+      dist.darkblue_brown = 0.75,
+      dist.red_pink = 0.5,
+      dist.darkblue_redpink = 0.4,
       black.length = 5,
-      angle.pink = 30,
-      pink.red.rule = "a_and_b_and_angle"
+      angle.red_pink = 30,
+      rule.red_pink = "a_and_b_and_angle"
     ))
   )
   
