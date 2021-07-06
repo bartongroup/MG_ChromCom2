@@ -221,24 +221,62 @@ plot_angle_timeline <- function(dp, brks = seq(-50, 50, 10), point.size=1.5, cex
     labs(x="Time window (min)", y="Angle (deg)")
 }
 
-plot_distance_angle <- function(dp, params, brks = seq(-50, 50, 10), facet="condition") {
-  g <- dp %>%
-    mutate(ab = pmax(dist_a, dist_b)) %>%
-    mutate(win = cut(time_nebd, breaks=brks)) %>% 
-    select(ab, win, angle_ab, angle_rg, state, condition) %>% 
+prepare_angles_ <- function(dp, params, brks = seq(-50, 50, 10), colour="state") {
+  dp %>%
+    mutate(
+      ab = pmax(dist_a, dist_b),
+      rg = pmin(dist_r, dist_g),
+      win = cut(time_nebd, breaks=brks)
+    ) %>% 
+    select(ab, rg, win, angle_ab, angle_rg, state, condition) %>% 
     pivot_longer(c(angle_ab, angle_rg)) %>% 
     drop_na() %>% 
-  ggplot(aes(x=ab, y=value * 180 / pi, fill=state)) +
+    mutate(fll = !!sym(colour))
+}
+
+plot_distance_angle <- function(dp, params, brks = seq(-50, 50, 10), facet="condition", colour="state") {
+  d <- prepare_angles_(dp, params, brks, colour)
+  g <- ggplot(d, aes(x=ab, y=value * 180 / pi, colour=fll)) +
     theme_bw() +
     theme(panel.grid = element_blank()) +
-    geom_point(shape=21, colour="grey50") +
+    geom_point() +
     geom_vline(xintercept = params$dist.red_pink, linetype = "dashed") +
-    scale_fill_manual(values=state_colour$colour[5:7], drop=TRUE) +
     scale_y_continuous(expand=c(0,0), limits=c(0,90), breaks=c(0,30,60,90)) +
     labs(x="Max(a, b)", y="Angle (deg)")
+  
+  if(colour == "state") {
+    g <- g + scale_colour_manual(values=state_colour$colour[5:7], drop=TRUE) + labs(colour="State")
+  } else {
+    g <- g + scale_colour_viridis_b() + labs(colour="Min(r, g)")
+  }
+  
   if(facet == "condition") {
     g <- g + facet_grid(name~condition)
   } else {
     g <- g + facet_grid(name~win)
   }
+  
+  g
+}
+
+
+plot_rg_angle <- function(dp, params, brks = seq(-50, 50, 10), facet="condition") {
+  d <- prepare_angles_(dp, params, brks, "state") %>% 
+    filter(name == "angle_rg" & ab < params$dist.red_pink)
+  g <- ggplot(d, aes(x=rg, y=value * 180 / pi, colour=fll)) +
+    theme_bw() +
+    theme(panel.grid = element_blank()) +
+    geom_point() +
+    scale_y_continuous(expand=c(0,0), limits=c(0,90), breaks=c(0,30,60,90)) +
+    labs(x="Min(r, g)", y="Angle red-green (deg)") +
+    scale_colour_manual(values=state_colour$colour[5:7], drop=TRUE) +
+    labs(colour="State", title=glue("Only data with max(a, b) < {params$dist.red_pink}"))
+  
+  if(facet == "condition") {
+    g <- g + facet_grid(name~condition)
+  } else {
+    g <- g + facet_grid(name~win)
+  }
+  
+  g
 }

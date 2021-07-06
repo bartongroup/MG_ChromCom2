@@ -125,7 +125,7 @@ parse_one_state <- function(ds, params) {
     state <- ifelse(cnd, "red", "pink")
     
     # additional rule: if r or g are small, state is brown
-    if(g < params$dist.darkblue_redpink | r < params$dist.darkblue_redpink) state <- "brown"
+    if(g < params$dist.brown_redpink | r < params$dist.brown_redpink) state <- "brown"
   }
   
   # 'c' is much faster than 'tibble' or 'data.frame'. However, it returns a vector of chr, so needs conversion later

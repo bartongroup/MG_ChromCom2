@@ -203,7 +203,7 @@ tar_read(fig_angle_timeline)
 
 The next figure shows the relation between maximum of the distances a and b, and the angle.
 
-```{r angle_distance, fig.width=8, fig.height=4}
+```{r angle_distance, fig.width=8, fig.height=6}
 tar_read(fig_distance_angle) 
 ```
 
@@ -212,6 +212,15 @@ The same figure, but split into time windows.
 ```{r angle_distance_timeline, fig.width=10, fig.height=3}
 tar_read(fig_distance_angle_timeline) 
 ```
+
+What if the large red-green angles at small a/b distances are a result of increased error when r/g distances are also small? This figure shows the red-green angle as a function of the smallest of the r, g distances. It only contains data below the red-pink limit (the vertical dashed line in figures above).
+
+```{r rg_angle, fig.width=6, fig.height=4}
+tar_read(fig_rg_angle) 
+```
+
+Perhaps, with brown-pink limit set to 0.5, all these high angles can be attributed to brown.
+
 
 ## Session info
 

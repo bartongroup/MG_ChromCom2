@@ -5,7 +5,7 @@ my_targets <- function() {
       dist.black_lightblue = 0.4,
       dist.darkblue_brown = 0.75,
       dist.red_pink = 0.5,
-      dist.darkblue_redpink = 0.4,
+      dist.brown_redpink = 0.5,
       black.length = 5,
       angle.red_pink = 30,
       rule.red_pink = "a_and_b_and_angle"
@@ -28,7 +28,10 @@ my_targets <- function() {
     tar_target(fig_angle_distribution, plot_angle_distribution(dat$parsed)),
     tar_target(fig_angle_timeline, plot_angle_timeline(dat$parsed)),
     tar_target(fig_distance_angle, plot_distance_angle(dat$parsed, dat$params)),
-    tar_target(fig_distance_angle_timeline, plot_distance_angle(dat$parsed, dat$params, facet="win"))
+    tar_target(fig_distance_angle_rg, plot_distance_angle(dat$parsed, dat$params, colour="rg")),
+    tar_target(fig_distance_angle_timeline, plot_distance_angle(dat$parsed, dat$params, facet="win")),
+    tar_target(fig_rg_angle, plot_rg_angle(dat$parsed, dat$params)),
+    tar_target(fig_rg_angle_timeline, plot_rg_angle(dat$parsed, dat$params, facet="win"))
   )
 
   raw_examples <- list(
