@@ -219,7 +219,7 @@ What if the large red-green angles at small a/b distances are a result of increa
 tar_read(fig_rg_angle) 
 ```
 
-Perhaps, with brown-pink limit set to 0.5, all these high angles can be attributed to brown.
+Indeed, most of the excessive angles appear when r or g are small. Perhaps, with brown-pink limit set to 0.5, these high angles can be attributed to brown.
 
 
 ## Session info
