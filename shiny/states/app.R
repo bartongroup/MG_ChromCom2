@@ -58,7 +58,7 @@ ui <- fluidPage(
       sliderInput("dist.darkblue_brown", "Blue/brown limit", value=0.75, min=0, max=5, step=0.05, ticks=FALSE),
       sliderInput("dist.red_pink", "Red/pink limit", value=0.5, min=0, max=5, step=0.05, ticks=FALSE),
       #sliderInput("black.length", "Black length", value=5, min=0, max=10, step=1, ticks=FALSE),
-      sliderInput("dist.darkblue_redpink", "Brown/red-pink limit", value=0.4, min=0, max=1, step=0.05, ticks=FALSE),
+      sliderInput("dist.brown_redpink", "Brown/red-pink limit", value=0.5, min=0, max=1, step=0.05, ticks=FALSE),
       sliderInput("angle.red_pink", "Red/pink angle", value=30, min=0, max=90, step=1, ticks=FALSE),
       selectInput("rule.red_pink", "Red/pink rule", choices=red_pink_rules),
       #checkboxInput("merge.blue", "Merge light/dark blue", value=TRUE),
@@ -72,7 +72,7 @@ ui <- fluidPage(
                   
         tabPanel("Overview",
           sliderInput("windowsize", "Running mean window", min=1, max=30, value=20, step=1, round=TRUE, ticks=FALSE),
-          plotOutput("map", height="600px") %>%
+          plotOutput("main_plot", height="600px") %>%
             withSpinner(color="#0dc5c1", type=5, size=0.5)
         ),
         
@@ -83,7 +83,8 @@ ui <- fluidPage(
         ),
         
         tabPanel("Dots",
-          sliderInput("time", "Time since NEBD (min)", value=0, min=min_time, max=max_time, step=1, round=TRUE, width="100%", ticks=FALSE),
+          #sliderInput("time", "Time since NEBD (min)", value=0, min=min_time, max=max_time, step=1, round=TRUE, width="100%", ticks=FALSE),
+          plotOutput("cell_map", height="300px", click="cell_time_click"),
           plotlyOutput("dot_plot", height="400px", width="400px") %>%
             withSpinner(color="#0dc5c1", type=5, size=0.5)
         )
@@ -103,7 +104,7 @@ server <- function(input, output, session) {
       #dist.black_lightblue = input$dist_lightblue,
       dist.black_lightblue = 0,
       dist.darkblue_brown = input$dist.darkblue_brown,
-      dist.darkblue_redpink = input$dist.darkblue_redpink,
+      dist.brown_redpink = input$dist.brown_redpink,
       dist.red_pink = input$dist.red_pink,
       #black.length = input$black.length,
       black.length = 0,
@@ -154,7 +155,7 @@ server <- function(input, output, session) {
     plot_grid(pl_state_distance_timeline(dp, params), pl_all_distance_timeline(dp, params), ncol=1, align="v")
   })
   
-  output$map <- renderPlot({
+  output$main_plot <- renderPlot({
     input$submit
     d <- dat()
     params <- params_from_input()
@@ -163,13 +164,31 @@ server <- function(input, output, session) {
     plot_grid(pl_state_map(dp, params), pl_proportion_map(dp, k=input$windowsize, params), ncol=1, align="v")
   })
   
+  output$cell_map <- renderPlot({
+    input$submit
+    d <- dat()
+    params <- params_from_input()
+    dp <- d$parsed %>% 
+      filter(cellcon == input$cellcon)
+    pl_state_map(dp, params)
+  })
+  
   output$dot_plot <- renderPlotly({
     d <- dat()
-    d$xyz %>% 
-      filter(cellcon == input$cellcon & mcell == input$mcell & time_nebd == input$time) %>% 
-      plot_ly() %>%
-      add_trace(type="scatter3d", mode="markers", x = ~x, y = ~y, z = ~z, marker=list(color = ~colour)) %>% 
-      layout(font=list(size=9), scene=list(aspectmode="data"))
+    params <- params_from_input()
+    mp <- d$parsed %>% 
+      filter(cellcon == input$cellcon) %>% 
+      make_state_map(params)
+    pl <- NULL
+    if(!is.null(input$cell_time_click)) {
+      sel <- nearPoints(mp, input$cell_time_click, xvar="x", yvar="y", maxpoints=1, threshold=100)
+      pl <- d$xyz %>% 
+        filter(cellcon == sel$cellcon & mcell == sel$mcell & time_nebd == sel$time_nebd) %>% 
+        plot_ly() %>%
+        add_trace(type="scatter3d", mode="markers", x = ~x, y = ~y, z = ~z, marker=list(color = ~colour)) %>% 
+        layout(font=list(size=9), scene=list(aspectmode="data"))
+    }
+    return(pl)
   })
   
 }

@@ -116,13 +116,17 @@ pl_all_distance_timeline <- function(dp, params) {
     labs(x="Time since nebd (min)", y=expression(Distance~(mu * m)), shape="Num dots", colour="Distance", fill="Distance")
 }
 
-
-
-pl_state_map <- function(dp, params) {
+make_state_map <- function(dp, params) {
   dp %>% 
     merge_blue_(params) %>% 
     unite(local_id, c(movie, cell)) %>% 
-    ggplot(aes(x=time_nebd, y=as_factor(local_id) %>% fct_rev(), fill=state)) +
+    mutate(x = time_nebd, y = as_factor(local_id) %>% fct_rev())
+}
+
+pl_state_map <- function(dp, params) {
+  dp %>% 
+    make_state_map(params) %>% 
+  ggplot(aes(x=x, y=y, fill=state)) +
     theme_bw() +
     theme(
       panel.grid = element_blank(),
