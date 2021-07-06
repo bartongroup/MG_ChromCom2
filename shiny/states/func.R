@@ -168,5 +168,21 @@ pl_proportion_map <- function(dp, k=5, params) {
     labs(x="Time since NEBD (min)", y="Proportion") +
     scale_x_continuous(breaks=seq(-100, 100, 10)) +
     scale_y_continuous(expand=c(0,0), limits=c(0,1))
-    
+}
+
+
+plot_dots <- function(xyz) {
+  pl <- xyz %>% 
+    plot_ly() %>%
+    add_trace(type="scatter3d", mode="markers", x = ~x, y = ~y, z = ~z, marker=list(color = ~colour), showlegend=FALSE) %>% 
+    layout(font=list(size=9), scene=list(aspectmode="data"))
+  xyz_red <- xyz %>% filter(colour == "red")
+  if(nrow(xyz_red) > 0) {
+    pl <- add_paths(pl, x = ~x, y = ~y, z = ~z, data=xyz_red, color = I("red"), showlegend=FALSE)
+  }
+  xyz_green <- xyz %>% filter(colour == "green")
+  if(nrow(xyz_green) > 0) {
+    pl <- add_paths(pl, x = ~x, y = ~y, z = ~z, data=xyz_green, color = I("green"), showlegend=FALSE)
+  }
+  pl
 }

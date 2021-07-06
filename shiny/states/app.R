@@ -150,8 +150,7 @@ server <- function(input, output, session) {
     input$submit
     d <- dat()
     params <- params_from_input()
-    dp <- d$parsed %>% 
-      filter(cellcon == input$cellcon & mcell == input$mcell)
+    dp <- d$parsed %>% filter(cellcon == input$cellcon & mcell == input$mcell)
     plot_grid(pl_state_distance_timeline(dp, params), pl_all_distance_timeline(dp, params), ncol=1, align="v")
   })
   
@@ -159,8 +158,7 @@ server <- function(input, output, session) {
     input$submit
     d <- dat()
     params <- params_from_input()
-    dp <- d$parsed %>% 
-      filter(cellcon == input$cellcon)
+    dp <- d$parsed %>% filter(cellcon == input$cellcon)
     plot_grid(pl_state_map(dp, params), pl_proportion_map(dp, k=input$windowsize, params), ncol=1, align="v")
   })
   
@@ -168,25 +166,21 @@ server <- function(input, output, session) {
     input$submit
     d <- dat()
     params <- params_from_input()
-    dp <- d$parsed %>% 
-      filter(cellcon == input$cellcon)
+    dp <- d$parsed %>% filter(cellcon == input$cellcon)
     pl_state_map(dp, params)
   })
   
   output$dot_plot <- renderPlotly({
+    input$submit
     d <- dat()
     params <- params_from_input()
-    mp <- d$parsed %>% 
-      filter(cellcon == input$cellcon) %>% 
-      make_state_map(params)
+    mp <- d$parsed %>% filter(cellcon == input$cellcon) %>% make_state_map(params)
     pl <- NULL
     if(!is.null(input$cell_time_click)) {
       sel <- nearPoints(mp, input$cell_time_click, xvar="x", yvar="y", maxpoints=1, threshold=100)
-      pl <- d$xyz %>% 
-        filter(cellcon == sel$cellcon & mcell == sel$mcell & time_nebd == sel$time_nebd) %>% 
-        plot_ly() %>%
-        add_trace(type="scatter3d", mode="markers", x = ~x, y = ~y, z = ~z, marker=list(color = ~colour)) %>% 
-        layout(font=list(size=9), scene=list(aspectmode="data"))
+      xyz <- d$xyz %>% 
+        filter(cellcon == sel$cellcon & mcell == sel$mcell & time_nebd == sel$time_nebd)
+      pl <- plot_dots(xyz)
     }
     return(pl)
   })
