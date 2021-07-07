@@ -85,8 +85,8 @@ ui <- fluidPage(
         tabPanel("Dots",
           #sliderInput("time", "Time since NEBD (min)", value=0, min=min_time, max=max_time, step=1, round=TRUE, width="100%", ticks=FALSE),
           plotOutput("cell_map", height="300px", click="cell_time_click"),
-          plotlyOutput("dot_plot", height="400px", width="400px") %>%
-            withSpinner(color="#0dc5c1", type=5, size=0.5)
+          plotlyOutput("dot_plot", height="400px", width="400px"),
+          tableOutput("dot_info")
         )
         
       )
@@ -170,21 +170,41 @@ server <- function(input, output, session) {
     pl_state_map(dp, params)
   })
   
-  output$dot_plot <- renderPlotly({
-    input$submit
-    d <- dat()
-    params <- params_from_input()
-    mp <- d$parsed %>% filter(cellcon == input$cellcon) %>% make_state_map(params)
-    pl <- NULL
+  get_map_click <- eventReactive(input$cell_time_click, {
+    sel <- NULL
     if(!is.null(input$cell_time_click)) {
-      sel <- nearPoints(mp, input$cell_time_click, xvar="x", yvar="y", maxpoints=1, threshold=100)
-      xyz <- d$xyz %>% 
-        filter(cellcon == sel$cellcon & mcell == sel$mcell & time_nebd == sel$time_nebd)
-      pl <- plot_dots(xyz)
+      d <- dat()
+      params <- params_from_input()
+      mp <- d$parsed %>% filter(cellcon == input$cellcon) %>% make_state_map(params)
+      sel <- nearPoints(mp, input$cell_time_click, xvar="x", yvar="y", maxpoints=1, threshold=5)
+      if(nrow(sel) == 0) sel <- NULL
+    }
+    return(sel)
+  })
+  
+  output$dot_plot <- renderPlotly({
+    sel <- get_map_click()
+    pl <- NULL
+    if(!is.null(sel)) {
+      d <- dat()
+      pl <- d$xyz %>%
+        filter(cellcon == sel$cellcon & mcell == sel$mcell & time_nebd == sel$time_nebd) %>% 
+        plot_dots()
     }
     return(pl)
   })
   
+  
+  output$dot_info <- renderTable({
+    sel <- get_map_click()
+    tb <- NULL
+    if(!is.null(sel)) {
+      tb <- sel %>% 
+        select(cell_id = mcell, time_nebd, n_dot, a = dist_a, b = dist_b, r = dist_r, g = dist_g, angle_ab, angle_rg, state) %>% 
+        mutate(angle_ab = 180 * angle_ab / pi, angle_rg = 180 * angle_rg / pi)
+    }
+    return(tb)
+  })
 }
 
 
