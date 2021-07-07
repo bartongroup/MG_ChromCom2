@@ -197,13 +197,12 @@ server <- function(input, output, session) {
   
   output$dot_info <- renderTable({
     sel <- get_map_click()
-    tb <- NULL
     if(!is.null(sel)) {
-      tb <- sel %>% 
+      sel <- sel %>% 
         select(cell_id = mcell, time_nebd, n_dot, a = dist_a, b = dist_b, r = dist_r, g = dist_g, angle_ab, angle_rg, state) %>% 
         mutate(angle_ab = 180 * angle_ab / pi, angle_rg = 180 * angle_rg / pi)
     }
-    return(tb)
+    return(sel)
   })
 }
 
