@@ -1,0 +1,5 @@
+AuthType Basic
+AuthName "Chromatin compaction 2"
+AuthBasicProvider PAM
+AuthPAMService slsauth
+Require user jabbott mgierlinski jkeykelenboom ttanaka
