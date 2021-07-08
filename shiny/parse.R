@@ -116,11 +116,10 @@ parse_one_state <- function(ds, params) {
     angle_ab <- angle_xyz(m[c(1, 3, 2, 4), ])
     angle_rg <- angle_xyz(m)
     
-    if(params$rule.red_pink == "a_and_b_and_angle") {
-      cnd <- a < params$dist.red_pink & b < params$dist.red_pink & angle_rg * 180 / pi < params$angle.red_pink
-    } else if(params$rule.red_pink == "a_or_b_and_angle") {
-      cnd <- (a < params$dist.red_pink | b < params$dist.red_pink) & angle_rg * 180 / pi < params$angle.red_pink
-    }
+    D <- params$dist.red_pink
+    A <- params$angle.red_pink * pi / 180
+    ang <- angle_rg
+    cnd <- eval(str2expression(params$rule.red_pink))
     
     state <- ifelse(cnd, "red", "pink")
     

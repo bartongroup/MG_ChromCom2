@@ -8,7 +8,7 @@ my_targets <- function() {
       dist.brown_redpink = 0.5,
       black.length = 5,
       angle.red_pink = 30,
-      rule.red_pink = "a_and_b_and_angle"
+      rule.red_pink = "(a < D & b < D) | (ang < A & (a < D | b < D))"
     ))
   )
   

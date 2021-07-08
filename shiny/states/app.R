@@ -41,7 +41,11 @@ initial_pars <- initial_parameters(initial_dat$metadata)
 min_time <- min(initial_dat$xyz$time_nebd)
 max_time <- max(initial_dat$xyz$time_nebd)
 
-red_pink_rules <- c("a_and_b_and_angle", "a_or_b_and_angle")
+red_pink_rules <- c(
+  "(a < D & b < D) | (ang < A & (a < D | b < D))",
+  "(a < D & b < D) & ang < A",
+  "(a < D | b < D) & ang < A"
+)
 
 
 #########################################
@@ -56,10 +60,10 @@ ui <- fluidPage(
       hr(),
       #sliderInput("dist.black_lightblue", "Black/light blue limit", value=0.5, min=0, max=5, step=0.05, ticks=FALSE),
       sliderInput("dist.darkblue_brown", "Blue/brown limit", value=0.75, min=0, max=5, step=0.05, ticks=FALSE),
-      sliderInput("dist.red_pink", "Red/pink limit", value=0.5, min=0, max=5, step=0.05, ticks=FALSE),
-      #sliderInput("black.length", "Black length", value=5, min=0, max=10, step=1, ticks=FALSE),
       sliderInput("dist.brown_redpink", "Brown/red-pink limit", value=0.5, min=0, max=1, step=0.05, ticks=FALSE),
-      sliderInput("angle.red_pink", "Red/pink angle", value=30, min=0, max=90, step=1, ticks=FALSE),
+      sliderInput("dist.red_pink", "Red/pink limit (D)", value=0.5, min=0, max=5, step=0.05, ticks=FALSE),
+      #sliderInput("black.length", "Black length", value=5, min=0, max=10, step=1, ticks=FALSE),
+      sliderInput("angle.red_pink", "Red/pink angle (A)", value=30, min=0, max=90, step=1, ticks=FALSE),
       selectInput("rule.red_pink", "Red/pink rule", choices=red_pink_rules),
       #checkboxInput("merge.blue", "Merge light/dark blue", value=TRUE),
       actionButton("submit", "Submit"),
