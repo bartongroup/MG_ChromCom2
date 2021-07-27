@@ -1,6 +1,6 @@
 
 
-mod_params_data_ui <- function(id) {
+mod_parse_data_ui <- function(id) {
   ns <- NS(id)
   
   tagList(
@@ -11,7 +11,6 @@ mod_params_data_ui <- function(id) {
     sliderInput(ns("dist.red_pink"), "Red/pink limit (D)", value=0.5, min=0, max=5, step=0.05, ticks=FALSE),
     sliderInput(ns("angle.red_pink"), "Red/pink angle (A)", value=30, min=0, max=90, step=1, ticks=FALSE),
     selectInput(ns("rule.red_pink"), "Red/pink rule", choices=red_pink_rules),
-    selectInput("cellcon", "Cell line/condition", choices=initial_pars$cellcons),
     actionButton(ns("submit"), "Submit")
   )
 }

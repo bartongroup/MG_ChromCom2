@@ -1,3 +1,5 @@
+# set libpath for our Shiny server
+
 libDir <- "/cluster/gjb_lab/mgierlinski/R_shiny/library/4.1"
 if(dir.exists(libDir)) .libPaths(libDir)
 
@@ -10,17 +12,26 @@ library(plotly)
 library(cowplot)
 library(tidyverse)
 
+options(dplyr.summarise.inform = FALSE)
+
+# ChromCom2 functions
+
 source("../setup.R")
 source("../io.R")
 source("../parse.R")
 source("../process.R")
 source("func.R")
 
-source("modules/mod_params_data.R")
+# App modules
 
-options(dplyr.summarise.inform = FALSE)
+source("modules/parse_data.R")
+source("modules/main_plot.R")
+source("modules/timeline.R")
+source("modules/dots.R")
+
 
 # Use local data if testing
+
 dirs <- c(
   "/cluster/gjb_lab/mgierlinski/projects/chromcom2/data",
   "/Users/mgierlinski/Projects/ChromCom2/data"
@@ -29,6 +40,7 @@ data_path <- NULL
 for(d in dirs) if(dir.exists(d)) data_path <- d
 
 # Cache file to store processed Excel sheets
+
 cache_path <- "cache"
 cache_file <- file.path(cache_path, "data.rds")
 
@@ -38,6 +50,7 @@ if(!file.exists(cache_file)) {
 }
 
 # Initial parameters for selectInput
+
 initial_dat <- read_rds(cache_file)
 initial_pars <- initial_parameters(initial_dat$metadata)
 min_time <- min(initial_dat$xyz$time_nebd)
