@@ -1,3 +1,8 @@
+# Shiny module timeline
+# Create a timeline for a selected cell
+
+# ----- UI definitions -----
+
 mod_timeline_ui <- function(id) {
   ns <- NS(id)
   
@@ -8,12 +13,13 @@ mod_timeline_ui <- function(id) {
   )
 }
 
+# ----- Server logic -----
 
 mod_timeline <- function(id, dat, submit_button, cellcon) {
   
   server <- function(input, output, session) {
-    ns <- session$ns
-    
+
+    # If cell/condition is changed, update movie/cell number selector
     observeEvent(cellcon(), {
       mcells <- dat()$metadata %>% 
         filter(cellcon == cellcon()) %>% 

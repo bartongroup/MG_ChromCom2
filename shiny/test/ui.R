@@ -1,6 +1,11 @@
 ui <- fluidPage(
   titlePanel("Parsing states from cell images"),
   br(),
+  tags$head(
+    tags$style(type="text/css", ".control-label { font-size: 9.5pt; }"),
+    tags$style(type="text/css", ".item { font-size: 9pt; }")
+  ),
+  
   
   sidebarLayout(
     sidebarPanel(

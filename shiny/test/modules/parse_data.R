@@ -1,4 +1,7 @@
+# Shiny module mod_parse_data
+# Read input parameters and parse distance data to create states
 
+# ----- UI definitions -----
 
 mod_parse_data_ui <- function(id) {
   ns <- NS(id)
@@ -15,11 +18,11 @@ mod_parse_data_ui <- function(id) {
   )
 }
 
+# ----- Server logic -----
 
 mod_parse_data <- function(id, state) {
   server <- function(input, output, session) {
-    ns <- session$ns
-    
+
     # We use isolate() to avoid dependency on input
     # The plot will be updated only on "sumbit"
     params_from_input <- function() {
@@ -38,6 +41,7 @@ mod_parse_data <- function(id, state) {
       ))
     }
     
+    # React to "reload" button by loading and processing all Excel files
     observeEvent(input$reload, {
       withProgress(message = "Loading Excel files", {
         info <- get_info(data_path)
@@ -53,12 +57,12 @@ mod_parse_data <- function(id, state) {
       })
     })
     
-    dat <- eventReactive(input$submit, {
-      if(file.exists(cache_file)) {
-        params <- params_from_input()
-        d <- read_rds(cache_file) %>% 
-          parse_xyz_data(params)
-      }
+    # On "submit" parse and return parsed data
+    eventReactive(input$submit, {
+      req(file.exists(cache_file))
+      params <- params_from_input()
+      read_rds(cache_file) %>% 
+        parse_xyz_data(params)
     })
   }
   

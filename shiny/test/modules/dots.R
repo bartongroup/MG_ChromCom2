@@ -1,3 +1,7 @@
+# Shiny module to display dots from a single image
+
+# ----- UI definitions -----
+
 mod_dots_ui <- function(id) {
   ns <- NS(id)
   
@@ -8,12 +12,12 @@ mod_dots_ui <- function(id) {
   )
 }
 
+# ----- Server logic -----
 
 mod_dots <- function(id, dat, submit_button, cellcon) {
   
   server <- function(input, output, session) {
-    ns <- session$ns
-    
+
     output$cell_map <- renderPlot({
       # Take a dependency on input$submit
       submit_button()
