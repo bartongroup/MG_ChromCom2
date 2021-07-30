@@ -1,3 +1,8 @@
+# Shiny module main_plot
+# Creates the main cell-line plot
+
+# ----- UI definitions -----
+
 mod_main_plot_ui <- function(id) {
   ns <- NS(id)
   
@@ -8,6 +13,7 @@ mod_main_plot_ui <- function(id) {
   )
 }
 
+# ----- Server logic -----
 
 mod_main_plot <- function(id, state) {
   
