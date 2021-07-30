@@ -15,23 +15,24 @@ mod_timeline_ui <- function(id) {
 
 # ----- Server logic -----
 
-mod_timeline <- function(id, dat, submit_button, cellcon) {
+mod_timeline <- function(id, state) {
   
   server <- function(input, output, session) {
 
     # If cell/condition is changed, update movie/cell number selector
-    observeEvent(cellcon(), {
-      mcells <- dat()$metadata %>% 
-        filter(cellcon == cellcon()) %>% 
+    observeEvent(state$cellcon, {
+      req(state$is_parsed)
+      mcells <- state$data$metadata %>% 
+        filter(cellcon == state$cellcon) %>% 
         pull(mcell)
       updateSelectInput(session, "mcell", choices=mcells)
     })
     
     output$timeline <- renderPlot({
-      # Take a dependency on input$submit
-      submit_button()
-      d <- dat()
-      dp <- d$parsed %>% filter(cellcon == cellcon() & mcell == input$mcell)
+      req(state$is_parsed)
+      d <- state$data
+      con <- state$cellcon
+      dp <- d$parsed %>% filter(cellcon == con & mcell == input$mcell)
       plot_grid(
         pl_state_distance_timeline(dp, d$params),
         pl_all_distance_timeline(dp, d$params),

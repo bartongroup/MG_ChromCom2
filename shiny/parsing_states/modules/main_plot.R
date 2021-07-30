@@ -9,16 +9,15 @@ mod_main_plot_ui <- function(id) {
 }
 
 
-mod_main_plot <- function(id, dat, submit_button, cellcon) {
+mod_main_plot <- function(id, state) {
   
   server <- function(input, output, session) {
-    ns <- session$ns
 
     output$main_plot <- renderPlot({
-      # Take a dependency on submit button
-      submit_button()
-      d <- dat()
-      dp <- d$parsed %>% filter(cellcon == cellcon())
+      req(state$is_parsed)
+      d <- state$data
+      con <- state$cellcon
+      dp <- d$parsed %>% filter(cellcon == con)   # putting state$cellcon here crashes the app (???)
       plot_grid(
         pl_state_map(dp, d$params),
         pl_proportion_map(dp, k=input$windowsize, d$params),

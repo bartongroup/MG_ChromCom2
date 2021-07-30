@@ -58,11 +58,13 @@ mod_parse_data <- function(id, state) {
     })
     
     # On "submit" parse and return parsed data
-    eventReactive(input$submit, {
+    observeEvent(input$submit, {
       req(file.exists(cache_file))
       params <- params_from_input()
-      read_rds(cache_file) %>% 
+      dat <- read_rds(cache_file) %>% 
         parse_xyz_data(params)
+      state$data <- dat
+      state$is_parsed <- TRUE
     })
   }
   

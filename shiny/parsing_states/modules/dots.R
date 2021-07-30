@@ -14,22 +14,23 @@ mod_dots_ui <- function(id) {
 
 # ----- Server logic -----
 
-mod_dots <- function(id, dat, submit_button, cellcon) {
+mod_dots <- function(id, state) {
   
   server <- function(input, output, session) {
 
     output$cell_map <- renderPlot({
-      # Take a dependency on input$submit
-      submit_button()
-      
-      d <- dat()
-      dp <- d$parsed %>% filter(cellcon == cellcon())
+      req(state$is_parsed)
+      d <- state$data
+      con <- state$cellcon
+      dp <- d$parsed %>% filter(cellcon == con)
       pl_state_map(dp, d$params)
     })
     
     get_map_click <- eventReactive(input$cell_time_click, {
-      d <- dat()
-      mp <- d$parsed %>% filter(cellcon == cellcon()) %>% make_state_map(d$params)
+      req(state$is_parsed)
+      d <- state$data
+      con <- state$cellcon
+      mp <- d$parsed %>% filter(cellcon == con) %>% make_state_map(d$params)
       nearPoints(mp, input$cell_time_click, xvar="x", yvar="y", maxpoints=1, threshold=5)
     })
     
@@ -37,7 +38,7 @@ mod_dots <- function(id, dat, submit_button, cellcon) {
       sel <- get_map_click()
       req(nrow(sel) > 0)
       
-      d <- dat()
+      d <- state$data
       d$xyz %>%
         filter(cellcon == sel$cellcon & mcell == sel$mcell & time_nebd == sel$time_nebd) %>% 
         plot_dots()

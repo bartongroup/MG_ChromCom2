@@ -1,3 +1,5 @@
+# UI for Shiny app "Parsing states"
+
 ui <- fluidPage(
   titlePanel("Parsing states from cell images"),
   br(),
