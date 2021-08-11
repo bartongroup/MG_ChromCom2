@@ -49,7 +49,7 @@ Collaborators: Tomo Tanaka, John Eykelenboom
 
 Shiny data explorers
 
- - [state diagnostic](https://shiny.compbio.dundee.ac.uk/private/marek_chromcom2/states/)
+ - [state diagnostic](https://shiny.compbio.dundee.ac.uk/private/marek_chromcom2/parsing_states/)
 
 #  {.tabset}
 

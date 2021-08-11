@@ -9,7 +9,7 @@ tar_option_set(packages = packages, format = "qs")
 files_R <- list.files("R", pattern="*.R$", full.names=TRUE)
 sr_ <- sapply(files_R, source)
 
-files_shiny <- list.files("shiny/R", pattern="*.R$", full.names=TRUE)
+files_shiny <- list.files("shiny/parsing_states/R", pattern="*.R$", full.names=TRUE)
 ss_ <- sapply(files_shiny, source)
 
 sesinfo <- list(
@@ -21,3 +21,4 @@ c(
   sesinfo,
   my_targets()
 )
+

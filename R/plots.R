@@ -216,7 +216,7 @@ plot_angle_timeline <- function(dp, brks = seq(-50, 50, 10), point.size=1.5, cex
     geom_boxplot(aes(colour=condition), fill="grey90", outlier.shape = NA, width=0.6) +
     geom_beeswarm(aes(group=condition, fill=state), colour="grey50", shape=21, dodge.width = 0.6, size=point.size, cex=cex) +
     scale_fill_manual(values=state_colour$colour[5:7], drop=TRUE) +
-    scale_colour_manual(values=okabe_ito_palette[2:3]) + 
+    scale_colour_manual(values=okabe_ito_palette[2:4]) + 
     scale_y_continuous(expand=c(0,0), limits=c(0,90), breaks=c(0,30,60,90)) +
     labs(x="Time window (min)", y="Angle (deg)")
 }
