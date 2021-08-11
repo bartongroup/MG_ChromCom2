@@ -9,17 +9,16 @@
 #'   data; track_colour - data about track colours
 #' @export
 get_info <- function(path) {
-  files <- dir(path, pattern="*info.xlsx", full.names=FALSE)
+  files <- list.files(path, pattern = "*info.xlsx", full.names = TRUE, recursive = TRUE)
   
   # Check if sheets OK
-  for(f in files) {
-    fn <- file.path(path, f)
+  for(fn in files) {
     sh <- readxl::excel_sheets(fn)
     if(!(sh[1] == "metadata" & sh[2] == "trackid")) stop(glue("Sheets in {fn} should be 'metadata' and 'trackid'."))
   }
   
-  meta <- map_dfr(files, function(f) {
-    fn <- file.path(path, f)
+  meta <- map_dfr(files, function(fn) {
+    fpath <- dirname(fn)
     r <- readxl::read_excel(fn,
       sheet = "metadata",
       col_names = c("name", "nebd_frame", "cell_line", "condition", "movie", "cell", "date"),
@@ -34,7 +33,7 @@ get_info <- function(path) {
       unite(mcell, c(movie, cell), sep="-", remove=FALSE) %>% 
       unite(cell_id, c(cellcon, mcell), remove=FALSE, sep=":") %>% 
       mutate(
-        cell_file = file.path(path, glue("{name}.xls")),
+        cell_file = file.path(fpath, glue("{name}.xls")),
         info_file = fn
       ) %>% 
       mutate(date = as.Date(date))

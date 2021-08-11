@@ -1,3 +1,5 @@
+time_limits <- c(-50, 50)  # for plots
+
 # Creates initial parameters for sliders. Returns a list of two vectors:
 # cellcons (cell line/condition) and mcells (movie / cell no)
 initial_parameters <- function(meta) {
@@ -11,7 +13,7 @@ initial_parameters <- function(meta) {
   )
 }
 
-# Reads Excel diles from the folder "data.path", does initial processing of raw
+# Reads Excel files from the folder "data.path", does initial processing of raw
 # data and saves the result in the cache file. Does not return anything useful.
 reload_data <- function(data.path, cell_sheets, cache.file) {
   info <- get_info(data.path)
@@ -135,11 +137,11 @@ pl_state_map <- function(dp, params) {
     ) +
     geom_tile() +
     scale_fill_manual(values=state_colour$colour, drop=FALSE) +
-    scale_x_continuous(breaks=seq(-100, 100, 10)) +
+    scale_x_continuous(breaks=seq(-100, 100, 10), limits=time_limits, expand=c(0,0)) +
     labs(x="Time since nebd (min)", y=NULL, fill=NULL)
 }
 
-pl_proportion_map <- function(dp, k=5, params) {
+make_proportion_map <- function(dp, k, params) {
   dp %>% 
     merge_blue_(params) %>% 
     #mutate(statelet = recode(as.character(state), 
@@ -159,14 +161,19 @@ pl_proportion_map <- function(dp, k=5, params) {
     pivot_longer(-time_nebd, names_to="state", values_to="prop") %>% 
     mutate(state = factor(state, levels=levels(dp$state))) %>% 
     group_by(state) %>%
-    mutate(smooth = runmean(prop, k)) %>% 
+    mutate(smooth = runmean(prop, k)) 
+}
+
+pl_proportion_map <- function(dp, k=5, params) {
+  dp %>% 
+    make_proportion_map(k, params) %>% 
   ggplot(aes(x=time_nebd, y=smooth, colour=state)) +
     theme_bw() +
     theme(legend.position = "none") +
     geom_line(size=1.5) +
     scale_colour_manual(values=state_colour$colour, drop=FALSE) +
     labs(x="Time since NEBD (min)", y="Proportion") +
-    scale_x_continuous(breaks=seq(-100, 100, 10)) +
+    scale_x_continuous(breaks=seq(-100, 100, 10), limits=time_limits, expand=c(0,0)) +
     scale_y_continuous(expand=c(0,0), limits=c(0,1))
 }
 
