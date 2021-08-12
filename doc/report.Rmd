@@ -113,8 +113,8 @@ There is only one green dot in the figure. Here is some raw data from this frame
 ```{r raw_m31}
 r <- tar_read(raw_ex_cell1_m31)
 myKable(r$Position, caption="Position")
-myKable(r$`Intensity Median Ch=1 Img=1`, caption="Intensity Median Ch=1 Img=1")
-myKable(r$`Intensity Median Ch=2 Img=1`, caption="Intensity Median Ch=2 Img=1")
+myKable(r$`Intensity Max Ch=1 Img=1`, caption="Intensity Max Ch=1 Img=1")
+myKable(r$`Intensity Max Ch=2 Img=1`, caption="Intensity Max Ch=2 Img=1")
 ```
 
 There are two dots in the `Position` sheet, but only one in intensity sheets, for red and green channels. Intensity data for track `1000000143` is missing in both channels.
@@ -126,8 +126,8 @@ Here we have two red dots in the plot.
 ```{r raw_m13}
 r <- tar_read(raw_ex_cell1_m13)
 myKable(r$Position, caption="Position")
-myKable(r$`Intensity Median Ch=1 Img=1`, caption="Intensity Median Ch=1 Img=1")
-myKable(r$`Intensity Median Ch=2 Img=1`, caption="Intensity Median Ch=2 Img=1")
+myKable(r$`Intensity Max Ch=1 Img=1`, caption="Intensity Max Ch=1 Img=1")
+myKable(r$`Intensity Max Ch=2 Img=1`, caption="Intensity Max Ch=2 Img=1")
 ```
 
 Just like above, intensity data from track `1000000047` is missing. There are two dots with measured position, byt only one of them has measured intensities.
@@ -139,8 +139,8 @@ This is an interesting case.
 ```{r raw_p6}
 r <- tar_read(raw_ex_cell1_p6)
 myKable(r$Position, caption="Position")
-myKable(r$`Intensity Median Ch=1 Img=1`, caption="Intensity Median Ch=1 Img=1")
-myKable(r$`Intensity Median Ch=2 Img=1`, caption="Intensity Median Ch=2 Img=1")
+myKable(r$`Intensity Max Ch=1 Img=1`, caption="Intensity Max Ch=1 Img=1")
+myKable(r$`Intensity Max Ch=2 Img=1`, caption="Intensity Max Ch=2 Img=1")
 ```
 
 There are four dots in position and intensity, but intensities of dots in rows 2 and 3 are identical, in each channel. It looks like maybe a dot intensity was missing, but it was replaced with an intensity from another dot. As a result, we have a red dot with green intensity way too large than it should be.

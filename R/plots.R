@@ -280,3 +280,28 @@ plot_rg_angle <- function(dp, params, brks = seq(-50, 50, 10), facet="condition"
   
   g
 }
+
+
+plot_intensity_sn <- function(xyz, cond) {
+  xyz %>%
+    filter(condition == cond) %>% 
+    select(mcell, colour, time_nebd, intensity, background) %>% 
+    mutate(SN = intensity / background) %>% 
+    group_split(mcell) %>% 
+    map(function(w) {
+      g <- ggplot(w) +
+        theme_bw() +
+        theme(panel.grid = element_blank()) +
+        scale_y_continuous(expand = expansion(mult = c(0, 0.05)), limits = c(0, NA))
+      
+      g1 <- g +
+        geom_point(aes(x=time_nebd, y=intensity), shape=1) +
+        geom_point(aes(x=time_nebd, y=background), shape=16) +
+        facet_wrap(~colour, ncol=1, scales="free_y") 
+      g2 <- g +
+        geom_point(aes(x=time_nebd, y=SN), colour="black") +
+        facet_wrap(~colour, ncol=1, scales="free_y") 
+      plot_grid(g1, g2, nrow = 1, align="h")
+    }) %>% 
+    plot_grid(plotlist = ., ncol=1, align="v")
+}

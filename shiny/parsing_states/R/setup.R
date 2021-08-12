@@ -13,9 +13,19 @@ state_colour <- tribble(
   mutate(state = as_factor(state))
 
 cell_sheets <- c(
-  "Intensity Median Ch=1 Img=1",
-  "Intensity Median Ch=2 Img=1",
+  "Intensity Mean Ch=1 Img=1",
+  "Intensity Mean Ch=2 Img=1",
+  "Intensity Max Ch=1 Img=1",
+  "Intensity Max Ch=2 Img=1",
   "Time",
   "Position"
+)
+
+background_sheets <- c(
+  "Intensity Mean Ch=1 Img=1",
+  "Intensity Mean Ch=2 Img=1",
+  "Intensity Median Ch=1 Img=1",
+  "Intensity Median Ch=2 Img=1",
+  "Time"
 )
 

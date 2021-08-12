@@ -1,7 +1,7 @@
 my_targets <- function() {
   
   setup <- list(
-    tar_target(params, list(
+    tar_target(PARAMS, list(
       dist.black_lightblue = 0.4,
       dist.darkblue_brown = 0.75,
       dist.red_pink = 0.5,
@@ -14,8 +14,12 @@ my_targets <- function() {
   
   read_data <- list(
     tar_target(info, get_info("data")),
-    tar_target(raw, read_cells(info, cell_sheets)),
-    tar_target(dat, process_raw_data(raw) %>% parse_xyz_data(params))
+    tar_target(raw, read_cells(info, cell_sheets, background_sheets)),
+    tar_target(dat, process_raw_data(raw) %>% parse_xyz_data(PARAMS)),
+    
+    tar_target(info_pilot, get_info("background_pilot")),
+    tar_target(raw_pilot, read_cells(info_pilot, cell_sheets, background_sheets)),
+    tar_target(dat_pilot, process_raw_data(raw_pilot) %>% parse_xyz_data(PARAMS))
   )
   
   figures_cells <- list(

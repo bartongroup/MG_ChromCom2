@@ -1,10 +1,4 @@
 
-# Process raw data from one cell.
-# r is raw excel data from one cell file
-# track_colours = track_id data
-
-
-
 #' Process raw data from one cell
 #'
 #' Converts raw data read by read_cells into more usable format. Also, assigns
@@ -17,24 +11,25 @@
 #'
 #' @return A list with lots of goodies.
 #' @export
-process_one_raw_data <- function(r, cellid, track_colours, meta) {
- 
-  ch1 <- r[["Intensity Median Ch=1 Img=1"]] %>% 
+process_cell_raw_data <- function(r, cellid, track_colours, meta, stat) {
+  
+  ch1 <- r[[glue("Intensity {stat} Ch=1 Img=1")]] %>% 
     select(
-      intensity_red = glue("Intensity Median"),
+      intensity_red = glue("Intensity {stat}"),
       track_id = TrackID,
       id = ID
     ) %>% 
     mutate(track_id = as.character(as.integer(track_id))) 
   
-  ch2 <- r[["Intensity Median Ch=2 Img=1"]] %>% 
+  ch2 <- r[[glue("Intensity {stat} Ch=2 Img=1")]] %>% 
     select(
-      intensity_green = glue("Intensity Median"),
+      intensity_green = glue("Intensity {stat}"),
       id = ID
     ) 
   
   intensities <- full_join(ch1, ch2, by="id") %>%
-    select(id, track_id, intensity_red, intensity_green)
+    select(id, track_id, intensity_red, intensity_green) %>% 
+    pivot_longer(-c(id, track_id), names_to="colour", values_to="intensity", names_prefix = "intensity_")
   
   track_colour <- track_colours %>%
     filter(cell_id == cellid) %>%
@@ -42,7 +37,7 @@ process_one_raw_data <- function(r, cellid, track_colours, meta) {
   
   times <- r$Time %>%
     set_names("time", "unit", "cat", "frame", "track_id", "id") %>% 
-    mutate(time = time / 60, unit="min", track_id = as.character(as.integer(track_id)))
+    mutate(time = time / 60, unit="min", track_id = as.character(as.integer(track_id)), frame = as.integer(frame))
   
   this_meta <- meta %>% filter(cell_id == cellid)
   
@@ -66,7 +61,7 @@ process_one_raw_data <- function(r, cellid, track_colours, meta) {
       track_id = TrackID,
       id = ID
     ) %>% 
-    mutate(track_id = as.character(as.integer(track_id)))
+    mutate(track_id = as.character(as.integer(track_id)), frame = as.integer(frame))
   
   dat <- pos %>% 
     group_by(frame) %>% 
@@ -75,7 +70,8 @@ process_one_raw_data <- function(r, cellid, track_colours, meta) {
     mutate(n_colour = n()) %>% 
     ungroup() %>% 
     left_join(track_colour, by="track_id") %>% 
-    left_join(select(times, time, time_nebd, id), by="id")
+    left_join(select(times, time, time_nebd, id), by="id") %>% 
+    left_join(intensities, by=c("id", "track_id", "colour"))
   
   list(
     dat = dat,
@@ -97,9 +93,80 @@ process_one_raw_data <- function(r, cellid, track_colours, meta) {
 #'
 #' @return A named list, one element per cell.
 #' @export
-process_cells_raw_data <- function(raw) {
+process_cells_raw_data <- function(raw, stat) {
   cells <- raw$metadata$cell_id
-  map(cells, ~process_one_raw_data(raw$cells[[.x]], .x, raw$track_colours, raw$metadata)) %>% 
+  map(cells, ~process_cell_raw_data(raw$cells[[.x]], .x, raw$track_colours, raw$metadata, stat)) %>% 
+    set_names(cells)
+}
+
+
+#' Process background data from one cell
+#'
+#' Converts background data read by read_cells into table of mean intensities per time point.
+#'
+#' @param r Raw data, one cell from the object created by read_cells.
+#' @param cellid Full cell id, e.g. "TT206_3"
+#' @param stat Statistic to be used (Mean, Median)
+#'
+#' @return A list with lots of goodies.
+#' @export
+process_cell_background_data <- function(r, cellid, stat) {
+  
+  if(is.null(r)) {
+    bkg <- tibble(
+      frame = numeric(),
+      background_red = numeric(),
+      background_green = numeric(),
+      time = numeric()
+    )
+  } else {
+    
+    ch1 <- r[[glue("Intensity {stat} Ch=1 Img=1")]] %>% 
+      select(
+        background_red = glue("Intensity {stat}"),
+        time = Time,
+        id = ID
+      ) 
+    
+    ch2 <- r[[glue("Intensity {stat} Ch=2 Img=1")]] %>% 
+      select(
+        background_green = glue("Intensity {stat}"),
+        id = ID
+      )
+    
+    times <- r$Time %>%
+      set_names("time", "unit", "cat", "frame", "id") %>% 
+      mutate(time = time / 60, unit="min", frame = as.integer(frame))
+    
+    frame_time <- times %>% 
+      select(frame, time) %>% 
+      distinct()
+    
+    bkg <- full_join(ch1, ch2, by="id") %>%
+      select(id, background_red, background_green) %>% 
+      pivot_longer(-id, names_to="colour", values_to="background", names_prefix = "background_") %>% 
+      left_join(select(times, id, frame), by="id") %>% 
+      group_by(frame, colour) %>% 
+      summarise(background = mean(background)) %>% 
+      left_join(frame_time, by="frame")
+  }
+    
+  list(
+    dat = bkg,
+    cell_id = cellid
+  )
+}
+
+
+#' Process data from all backgrounds (internal function)
+#'
+#' @param raw Raw data object crated by read_cells
+#'
+#' @return A named list, one element per cell.
+#' @export
+process_cells_background_data <- function(raw, stat="Mean") {
+  cells <- raw$metadata$cell_id
+  map(cells, ~process_cell_background_data(raw$background[[.x]], .x, stat)) %>% 
     set_names(cells)
 }
 
@@ -137,20 +204,25 @@ merge_cell_data <- function(d) {
 #' raw = read_cells(metadata, cell_sheets)
 #' dat = process_raw_data(raw) %>% parse_xyz_data(params)
 #' 
-process_raw_data <- function(raw, z_correction = 0.85, with_celldat=TRUE) {
+process_raw_data <- function(raw, z_correction = 0.85, with_celldat=TRUE, cell_stat="Max", bkg_stat="Mean") {
   md <- raw$metadata %>% select(cell_id, cell_line, condition, movie, cell, cellcon, mcell)
-  celldat <- process_cells_raw_data(raw) 
+  celldat <- process_cells_raw_data(raw, cell_stat)
+  bkg <- process_cells_background_data(raw, bkg_stat) %>% merge_cell_data()
   xyz <- merge_cell_data(celldat) %>%
     left_join(md, by="cell_id") %>%
     mutate(
       z = z * z_correction,
       colour = factor(colour, levels=c("green", "red"))
-    )
+    ) %>% 
+    left_join(select(bkg, -time), by=c("cell_id", "frame", "colour"))
   r <- list(
     metadata = md,
     xyz = xyz
   )
-  if(with_celldat) r$celldat <- celldat
+  if(with_celldat) {
+    r$celldat <- celldat
+    r$bkg <- bkg
+  }
   r
 }
 

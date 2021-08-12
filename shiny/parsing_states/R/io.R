@@ -26,6 +26,7 @@ get_info <- function(path) {
       skip = 1
     )
     r %>% mutate(
+        nebd_frame = as.integer(nebd_frame),
         cell_line = str_replace_all(cell_line, " ", "_"),
         condition = str_replace_all(condition, " ", "_")
       ) %>% 
@@ -34,6 +35,7 @@ get_info <- function(path) {
       unite(cell_id, c(cellcon, mcell), remove=FALSE, sep=":") %>% 
       mutate(
         cell_file = file.path(fpath, glue("{name}.xls")),
+        background_file = file.path(fpath, glue("{name}_extendedvol.xls")),
         info_file = fn
       ) %>% 
       mutate(date = as.Date(date))
@@ -74,10 +76,13 @@ get_info <- function(path) {
 #'
 #' @return A named list with sheets.
 #' @export
-read_excel_cell <- function(excel_file, sheets, verbose=TRUE) {
-  stopifnot(file.exists(excel_file))
+read_excel_cell <- function(excel_file, sheets=NULL, verbose=TRUE) {
+  if(!file.exists(excel_file)) return(NULL)
   if(verbose) cat(glue("\nReading {excel_file}\n\n"))
-  map(sheets, ~readxl::read_excel(excel_file, .x, skip=1)) %>% set_names(sheets)
+  if(is.null(sheets)){
+    sheets <- excel_sheets(path.expand(excel_file))  # there is a bug in readxl that doesn't take relative paths
+  }
+  map(sheets, ~readxl::read_excel(path.expand(excel_file), .x, skip=1)) %>% set_names(sheets)
 }
 
 
@@ -109,17 +114,21 @@ test_for_files <- function(meta) {
 #'
 #' @param meta Metadata tibble
 #' @param sheets A vector with sheet names to be read from the main cell file.
+#' @param background_sheets A vector with sheet names for background (extendedvol) files.
 #'
 #' @return A list with metadata, cells and track_colours.
 #' @export
-read_cells <- function(info, sheets) {
+read_cells <- function(info, sheets, background_sheets) {
   test_for_files(info$metadata)
   cls <- map(info$metadata$cell_file, ~read_excel_cell(.x, sheets)) %>%
+    set_names(info$metadata$cell_id)
+  bkg <- map(info$metadata$background_file, ~read_excel_cell(.x, background_sheets)) %>%
     set_names(info$metadata$cell_id)
   list(
     metadata = info$metadata,
     track_colours = info$track_colours,
-    cells = cls
+    cells = cls,
+    background = bkg
   )
 }
 
