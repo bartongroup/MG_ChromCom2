@@ -114,15 +114,15 @@ test_for_files <- function(meta) {
 #'
 #' @param meta Metadata tibble
 #' @param sheets A vector with sheet names to be read from the main cell file.
-#' @param background_sheets A vector with sheet names for background (extendedvol) files.
+#' @param BACKGROUND_SHEETS A vector with sheet names for background (extendedvol) files.
 #'
 #' @return A list with metadata, cells and track_colours.
 #' @export
-read_cells <- function(info, sheets, background_sheets) {
+read_cells <- function(info, sheets, BACKGROUND_SHEETS) {
   test_for_files(info$metadata)
   cls <- map(info$metadata$cell_file, ~read_excel_cell(.x, sheets)) %>%
     set_names(info$metadata$cell_id)
-  bkg <- map(info$metadata$background_file, ~read_excel_cell(.x, background_sheets)) %>%
+  bkg <- map(info$metadata$background_file, ~read_excel_cell(.x, BACKGROUND_SHEETS)) %>%
     set_names(info$metadata$cell_id)
   list(
     metadata = info$metadata,

@@ -1,8 +1,8 @@
 time_limits <- c(-50, 50)  # for plots
 
-# Creates initial parameters for sliders. Returns a list of two vectors:
+# Creates initial parameters for selectors Returns a list of two vectors:
 # cellcons (cell line/condition) and mcells (movie / cell no)
-initial_parameters <- function(meta) {
+initial_cellcons <- function(meta) {
   cellcons <- unique(meta$cellcon)
   init_cellcon <- cellcons[1]
   mcells <- meta %>% filter(cellcon == init_cellcon) %>% pull(mcell)
@@ -15,9 +15,9 @@ initial_parameters <- function(meta) {
 
 # Reads Excel files from the folder "data.path", does initial processing of raw
 # data and saves the result in the cache file. Does not return anything useful.
-reload_data <- function(data.path, cell_sheets, cache.file) {
+reload_data <- function(data.path, CELL_SHEETS, cache.file) {
   info <- get_info(data.path)
-  dat <- read_cells(info, cell_sheets) %>% 
+  dat <- read_cells(info, CELL_SHEETS) %>% 
     process_raw_data(with_celldat=FALSE)
   write_rds(dat, cache.file)
 }
@@ -33,7 +33,7 @@ make_state_limit_tb_ <- function(params) {
     filter(str_detect(name, "dist.")) %>% 
     mutate(limit = as.numeric(limit)) %>% 
     separate(name, c("what", "state")) %>% 
-    mutate(state = factor(state, levels=state_colour$state))
+    mutate(state = factor(state, levels=STATE_COLOUR$state))
 }
 
 # Reduce distances a, b, g, r to two distances 1 and 2, just for plotting. Used
@@ -76,8 +76,8 @@ pl_state_distance_timeline <- function(dp, params) {
     geom_hline(data=dd, aes(yintercept = limit, colour=state), linetype="dotted") +
     geom_segment(aes(xend=time_nebd, yend=0, y=dist_max), colour="grey80") +
     geom_point(size=3, colour="grey50") +
-    scale_fill_manual(values=state_colour$colour, drop=FALSE) +
-    scale_colour_manual(values=state_colour$colour, drop=FALSE) +
+    scale_fill_manual(values=STATE_COLOUR$colour, drop=FALSE) +
+    scale_colour_manual(values=STATE_COLOUR$colour, drop=FALSE) +
     guides(colour="none") +
     scale_shape_manual(values=c(20, 21, 24, 23), drop=FALSE) +
     geom_point(data =  ds, aes(y=dist_2), shape=23, size=3, colour="grey50") +
@@ -136,7 +136,7 @@ pl_state_map <- function(dp, params) {
       #axis.text.y = element_blank()
     ) +
     geom_tile() +
-    scale_fill_manual(values=state_colour$colour, drop=FALSE) +
+    scale_fill_manual(values=STATE_COLOUR$colour, drop=FALSE) +
     scale_x_continuous(breaks=seq(-100, 100, 10), limits=time_limits, expand=c(0,0)) +
     labs(x="Time since nebd (min)", y=NULL, fill=NULL)
 }
@@ -171,7 +171,7 @@ pl_proportion_map <- function(dp, k=5, params) {
     theme_bw() +
     theme(legend.position = "none") +
     geom_line(size=1.5) +
-    scale_colour_manual(values=state_colour$colour, drop=FALSE) +
+    scale_colour_manual(values=STATE_COLOUR$colour, drop=FALSE) +
     labs(x="Time since NEBD (min)", y="Proportion") +
     scale_x_continuous(breaks=seq(-100, 100, 10), limits=time_limits, expand=c(0,0)) +
     scale_y_continuous(expand=c(0,0), limits=c(0,1))

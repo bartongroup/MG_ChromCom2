@@ -7,7 +7,7 @@ mod_timeline_ui <- function(id) {
   ns <- NS(id)
   
   tagList(
-    selectInput(ns("mcell"), "Movie/cell no.", choices=initial_pars$mcells),
+    selectInput(ns("mcell"), "Movie/cell no.", choices=initial_cells$mcells),
     plotOutput(ns("timeline"), height="500px") %>%
       withSpinner(color="#0dc5c1", type=5, size=0.5)
   )
@@ -33,6 +33,9 @@ mod_timeline <- function(id, state) {
       d <- state$data
       con <- state$cellcon
       dp <- d$parsed %>% filter(cellcon == con & mcell == input$mcell)
+      # delays in selectInput updates might result in wrong mcell selection for
+      # a short time, this is to avoid an error message on screen
+      req(nrow(dp) > 0)  
       plot_grid(
         pl_state_distance_timeline(dp, d$params),
         pl_all_distance_timeline(dp, d$params),

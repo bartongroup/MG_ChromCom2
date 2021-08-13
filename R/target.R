@@ -1,25 +1,13 @@
 my_targets <- function() {
   
-  setup <- list(
-    tar_target(PARAMS, list(
-      dist.black_lightblue = 0.4,
-      dist.darkblue_brown = 0.75,
-      dist.red_pink = 0.5,
-      dist.brown_redpink = 0.5,
-      black.length = 5,
-      angle.red_pink = 30,
-      rule.red_pink = "(a < D & b < D) | (ang < A & (a < D | b < D))"
-    ))
-  )
-  
   read_data <- list(
     tar_target(info, get_info("data")),
-    tar_target(raw, read_cells(info, cell_sheets, background_sheets)),
-    tar_target(dat, process_raw_data(raw) %>% parse_xyz_data(PARAMS)),
+    tar_target(raw, read_cells(info, CELL_SHEETS, BACKGROUND_SHEETS)),
+    tar_target(dat, process_raw_data(raw) %>% parse_xyz_data(DEFAULT_PARAMS)),
     
     tar_target(info_pilot, get_info("background_pilot")),
-    tar_target(raw_pilot, read_cells(info_pilot, cell_sheets, background_sheets)),
-    tar_target(dat_pilot, process_raw_data(raw_pilot) %>% parse_xyz_data(PARAMS))
+    tar_target(raw_pilot, read_cells(info_pilot, CELL_SHEETS, BACKGROUND_SHEETS)),
+    tar_target(dat_pilot, process_raw_data(raw_pilot) %>% parse_xyz_data(DEFAULT_PARAMS))
   )
   
   figures_cells <- list(
@@ -45,7 +33,6 @@ my_targets <- function() {
   )
   
   c(
-    setup,
     read_data,
     raw_examples,
     figures_cells

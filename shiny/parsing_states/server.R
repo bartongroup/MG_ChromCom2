@@ -6,7 +6,7 @@ server <- function(input, output, session) {
   app_state <- reactiveValues(
     data = NULL,
     is_parsed = FALSE,
-    cellcon = initial_pars$cellcons[1]
+    cellcon = initial_cells$cellcons[1]
   )
   
   # Need to pass cell-line/condition down to modules

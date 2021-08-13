@@ -1,6 +1,16 @@
 library(tidyverse)
 
-state_colour <- tribble(
+DEFAULT_PARAMS <- list(
+  dist.black_lightblue = 0.4,
+  dist.darkblue_brown = 0.75,
+  dist.red_pink = 0.5,
+  dist.brown_redpink = 0.5,
+  black.length = 5,
+  angle.red_pink = 30,
+  rule.red_pink = "(a < D & b < D) | (ang < A & (a < D | b < D))"
+)
+
+STATE_COLOUR <- tribble(
   ~state, ~colour, ~letter,
   "none", "grey70", "-",
   "black", "black", "K",
@@ -12,7 +22,7 @@ state_colour <- tribble(
 ) %>% 
   mutate(state = as_factor(state))
 
-cell_sheets <- c(
+CELL_SHEETS <- c(
   "Intensity Mean Ch=1 Img=1",
   "Intensity Mean Ch=2 Img=1",
   "Intensity Max Ch=1 Img=1",
@@ -21,7 +31,7 @@ cell_sheets <- c(
   "Position"
 )
 
-background_sheets <- c(
+BACKGROUND_SHEETS <- c(
   "Intensity Mean Ch=1 Img=1",
   "Intensity Mean Ch=2 Img=1",
   "Intensity Median Ch=1 Img=1",

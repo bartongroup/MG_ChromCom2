@@ -201,7 +201,7 @@ merge_cell_data <- function(d) {
 #'
 #' @examples
 #' metadata = get_metadata("data")
-#' raw = read_cells(metadata, cell_sheets)
+#' raw = read_cells(metadata, CELL_SHEETS)
 #' dat = process_raw_data(raw) %>% parse_xyz_data(params)
 #' 
 process_raw_data <- function(raw, z_correction = 0.85, with_celldat=TRUE, cell_stat="Max", bkg_stat="Mean") {
@@ -237,7 +237,7 @@ process_raw_data <- function(raw, z_correction = 0.85, with_celldat=TRUE, cell_s
 #'
 #' @examples
 #' metadata = get_metadata("data")
-#' raw = read_cells(metadata, cell_sheets)
+#' raw = read_cells(metadata, CELL_SHEETS)
 #' dat = process_raw_data(raw) %>% parse_xyz_data(params)
 #' 
 parse_xyz_data <- function(d, params) {

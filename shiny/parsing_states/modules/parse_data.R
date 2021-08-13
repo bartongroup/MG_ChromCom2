@@ -9,10 +9,10 @@ mod_parse_data_ui <- function(id) {
   tagList(
     actionButton(ns("reload"), "Reload data"),
     hr(),
-    sliderInput(ns("dist.darkblue_brown"), "Blue/brown limit", value=0.75, min=0, max=5, step=0.05, ticks=FALSE),
-    sliderInput(ns("dist.brown_redpink"), "Brown/red-pink limit", value=0.5, min=0, max=1, step=0.05, ticks=FALSE),
-    sliderInput(ns("dist.red_pink"), "Red/pink limit (D)", value=0.5, min=0, max=5, step=0.05, ticks=FALSE),
-    sliderInput(ns("angle.red_pink"), "Red/pink angle (A)", value=30, min=0, max=90, step=1, ticks=FALSE),
+    sliderInput(ns("dist.darkblue_brown"), "Blue/brown limit", value=DEFAULT_PARAMS$dist.darkblue_brown, min=0, max=5, step=0.05, ticks=FALSE),
+    sliderInput(ns("dist.brown_redpink"), "Brown/red-pink limit", value=DEFAULT_PARAMS$dist.brown_redpink, min=0, max=1, step=0.05, ticks=FALSE),
+    sliderInput(ns("dist.red_pink"), "Red/pink limit (D)", value=DEFAULT_PARAMS$dist.red_pink, min=0, max=5, step=0.05, ticks=FALSE),
+    sliderInput(ns("angle.red_pink"), "Red/pink angle (A)", value=DEFAULT_PARAMS$angle.red_pink, min=0, max=90, step=1, ticks=FALSE),
     selectInput(ns("rule.red_pink"), "Red/pink rule", choices=red_pink_rules),
     actionButton(ns("submit"), "Submit")
   )
@@ -46,7 +46,7 @@ mod_parse_data <- function(id, state) {
       withProgress(message = "Loading Excel files", {
         info <- get_info(data_path)
         incProgress(1/4)
-        dat <- read_cells(info, cell_sheets)
+        dat <- read_cells(info, CELL_SHEETS)
         incProgress(1/4)
         dat <- process_raw_data(dat, with_celldat=FALSE)
         incProgress(1/4)

@@ -46,15 +46,17 @@ cache_file <- file.path(cache_path, "data.rds")
 
 if(!dir.exists(cache_path)) dir.create(cache_path)
 if(!file.exists(cache_file)) {
-  reload_data(data_path, cell_sheets, cache_file)
+  reload_data(data_path, CELL_SHEETS, cache_file)
 }
 
 # Initial parameters for selectInput
 
 initial_dat <- read_rds(cache_file)
-initial_pars <- initial_parameters(initial_dat$metadata)
+initial_cells <- initial_cellcons(initial_dat$metadata)
 min_time <- min(initial_dat$xyz$time_nebd)
 max_time <- max(initial_dat$xyz$time_nebd)
+
+# Possible red/pink rules
 
 red_pink_rules <- c(
   "(a < D & b < D) | (ang < A & (a < D | b < D))",

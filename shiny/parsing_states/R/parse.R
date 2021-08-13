@@ -191,10 +191,10 @@ parse_states <- function(xyz, params) {
     group_split(cell_id, frame) %>% 
     map_dfr(~parse_one_state(.x, params)) %>% 
     mutate_at(vars(frame, time, time_nebd, dist_a, dist_b, dist_r, dist_g, angle_ab, angle_rg), as.numeric) %>%
-    left_join(state_colour %>% select(state, letter), by="state") %>% 
+    left_join(STATE_COLOUR %>% select(state, letter), by="state") %>% 
     mutate(
-      state = factor(state, levels=state_colour$state),
-      letter = factor(letter, levels=state_colour$letter)
+      state = factor(state, levels=STATE_COLOUR$state),
+      letter = factor(letter, levels=STATE_COLOUR$letter)
     ) %>% 
     parse_black(params)
 }

@@ -118,8 +118,8 @@ plot_state_distance <- function(dp, params) {
     geom_hline(data=make_state_limit_tb(params), aes(yintercept = limit), linetype="dotted") +
     geom_segment(aes(xend=time_nebd, yend=0, y=dist_max), colour="grey80") +
     geom_point(size=3, colour="grey50") +
-    scale_fill_manual(values=state_colour$colour, drop=FALSE) +
-    scale_colour_manual(values=state_colour$colour, drop=FALSE) +
+    scale_fill_manual(values=STATE_COLOUR$colour, drop=FALSE) +
+    scale_colour_manual(values=STATE_COLOUR$colour, drop=FALSE) +
     guides(colour="none") +
     scale_shape_manual(values=c(20, 21, 24, 23), drop=FALSE) +
     geom_point(aes(y=dist_2), shape=23, size=3, colour="grey50") +
@@ -143,7 +143,7 @@ plot_distance_distribution <- function(dp, params, cex=3) {
     ) +
     geom_hline(data=make_state_limit_tb(params), aes(yintercept = limit), linetype="dotted") +
     geom_beeswarm(cex=cex) +
-    scale_colour_manual(values=state_colour$colour, drop=FALSE) +
+    scale_colour_manual(values=STATE_COLOUR$colour, drop=FALSE) +
     facet_wrap(~condition) +
     labs(x="Number of dots", y="Distance")
 }
@@ -187,7 +187,7 @@ plot_state_map <- function(dp) {
     ) +
     geom_tile() +
     facet_wrap(~condition, scales="free") +
-    scale_fill_manual(values=state_colour$colour, drop=FALSE) +
+    scale_fill_manual(values=STATE_COLOUR$colour, drop=FALSE) +
     labs(x="Time since nebd (min)", y=NULL, fill=NULL)
 }
 
@@ -200,7 +200,7 @@ plot_angle_distribution <- function(dp) {
     theme(legend.position = "none") +
     geom_boxplot(outlier.shape = NA) +
     geom_beeswarm() +
-    scale_colour_manual(values=state_colour$colour, drop=FALSE) +
+    scale_colour_manual(values=STATE_COLOUR$colour, drop=FALSE) +
     scale_y_continuous(expand=c(0,0), limits=c(0,90), breaks=c(0,30,60,90)) +
     facet_wrap(~condition) +
     labs(x=NULL, y="Angle (deg)")
@@ -215,7 +215,7 @@ plot_angle_timeline <- function(dp, brks = seq(-50, 50, 10), point.size=1.5, cex
     theme(panel.grid = element_blank(), legend.position = "bottom") +
     geom_boxplot(aes(colour=condition), fill="grey90", outlier.shape = NA, width=0.6) +
     geom_beeswarm(aes(group=condition, fill=state), colour="grey50", shape=21, dodge.width = 0.6, size=point.size, cex=cex) +
-    scale_fill_manual(values=state_colour$colour[5:7], drop=TRUE) +
+    scale_fill_manual(values=STATE_COLOUR$colour[5:7], drop=TRUE) +
     scale_colour_manual(values=okabe_ito_palette[2:4]) + 
     scale_y_continuous(expand=c(0,0), limits=c(0,90), breaks=c(0,30,60,90)) +
     labs(x="Time window (min)", y="Angle (deg)")
@@ -245,7 +245,7 @@ plot_distance_angle <- function(dp, params, brks = seq(-50, 50, 10), facet="cond
     labs(x="Max(a, b)", y="Angle (deg)")
   
   if(colour == "state") {
-    g <- g + scale_colour_manual(values=state_colour$colour[5:7], drop=TRUE) + labs(colour="State")
+    g <- g + scale_colour_manual(values=STATE_COLOUR$colour[5:7], drop=TRUE) + labs(colour="State")
   } else {
     g <- g + scale_colour_viridis_b() + labs(colour="Min(r, g)")
   }
@@ -269,7 +269,7 @@ plot_rg_angle <- function(dp, params, brks = seq(-50, 50, 10), facet="condition"
     geom_point() +
     scale_y_continuous(expand=c(0,0), limits=c(0,90), breaks=c(0,30,60,90)) +
     labs(x="Min(r, g)", y="Angle red-green (deg)") +
-    scale_colour_manual(values=state_colour$colour[5:7], drop=TRUE) +
+    scale_colour_manual(values=STATE_COLOUR$colour[5:7], drop=TRUE) +
     labs(colour="State", title=glue("Only data with max(a, b) < {params$dist.red_pink}"))
   
   if(facet == "condition") {

@@ -13,7 +13,7 @@ ui <- fluidPage(
     sidebarPanel(
       mod_parse_data_ui("parse_data"),
       hr(),
-      selectInput("cellcon", "Cell line/condition", choices=initial_pars$cellcons),
+      selectInput("cellcon", "Cell line/condition", choices=initial_cells$cellcons),
     ),
     
     mainPanel(
