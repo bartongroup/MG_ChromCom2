@@ -257,7 +257,7 @@ process_raw_data <- function(rw, z_correction = 0.85, with_celldat=TRUE, cell_st
   
   intensities <- ints %>% 
     left_join(bkgs, by=c("cell_id", "frame", "chn_colour")) %>% 
-    select(cell_id, id, frame, time, time_nebd, chn_colour, intensity, background)
+    select(cell_id, frame, time, time_nebd, dot_colour, chn_colour, intensity, background)
   
   r <- list(
     metadata = md,
@@ -266,7 +266,7 @@ process_raw_data <- function(rw, z_correction = 0.85, with_celldat=TRUE, cell_st
   )
   if(with_celldat) {
     r$celldat <- celldat
-    r$bkg <- bkg
+    r$bkg <- bkgs
   }
   r
 }
