@@ -287,11 +287,10 @@ plot_rg_angle <- function(dp, params, brks = seq(-50, 50, 10), facet="condition"
 
 plot_intensity_sn <- function(d, cond) {
   d$intensities %>%
-    select(-id) %>%
     distinct() %>% 
     left_join(d$metadata, by="cell_id") %>% 
     filter(condition == cond) %>% 
-    select(mcell, chn_colour, time_nebd, intensity, background) %>% 
+    select(mcell, dot_colour, chn_colour, time_nebd, intensity, background) %>% 
     mutate(SN = intensity / background, chn_colour = factor(chn_colour, levels=c("red", "green"))) %>% 
     group_split(mcell) %>% 
     map(function(w) {
@@ -301,13 +300,16 @@ plot_intensity_sn <- function(d, cond) {
         scale_y_continuous(expand = expansion(mult = c(0, 0.05)), limits = c(0, NA))
       
       g1 <- g +
-        geom_point(aes(x=time_nebd, y=intensity), shape=1) +
-        geom_point(aes(x=time_nebd, y=background), shape=16) +
+        geom_point(aes(x=time_nebd, y=intensity, colour=dot_colour)) +
+        geom_point(aes(x=time_nebd, y=background)) +
+        scale_colour_manual(values=c("forestgreen", "red")) +
         facet_wrap(~chn_colour, ncol=1, scales="free_y") +
-        labs(title = first(w$mcell))
+        labs(title = first(w$mcell)) +
+        theme(legend.position = "none")
       g2 <- g +
-        geom_point(aes(x=time_nebd, y=SN), colour="black") +
-        facet_wrap(~chn_colour, ncol=1, scales="free_y") 
+        geom_point(aes(x=time_nebd, y=SN, colour=dot_colour)) +
+        facet_wrap(~chn_colour, ncol=1, scales="free_y") +
+        scale_colour_manual(values=c("forestgreen", "red"))
       plot_grid(g1, g2, nrow = 1, align="h")
     }) %>% 
     plot_grid(plotlist = ., ncol=1, align="v")
