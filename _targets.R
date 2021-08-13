@@ -2,6 +2,8 @@ library(targets)
 
 packages <- c("glue", "cowplot", "ggrepel", "ggbeeswarm", "ggridges", "readxl", "gganimate", "tidyverse")
 tar_option_set(packages = packages, format = "qs")
+options(dplyr.summarise.inform = FALSE)
+
 
 # for interactive session only
 # sapply(packages, library, character.only=TRUE)

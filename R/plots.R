@@ -11,11 +11,13 @@ make_time_ticks <- function(val.min=-200, val.max=200, lab.step=5) {
 # plot red vs green intensity and colour identification
 # input: one cell from dat_cells
 plot_colour_identification <- function(dc) {
-  mn <- min(c(dc$intensities$intensity_red, dc$intensities$intensity_green))
-  mx <- max(c(dc$intensities$intensity_red, dc$intensities$intensity_green))
-  dc$intensities %>% 
+  ints <- dc$intensities %>% 
+    pivot_wider(id_cols=c(id, track_id, frame, time_nebd), names_from=chn_colour, values_from=intensity, names_prefix = "intensity_")
+  mn <- min(c(ints$intensity_red, ints$intensity_green))
+  mx <- max(c(ints$intensity_red, ints$intensity_green))
+  ints %>% 
     left_join(dc$track_colour, by="track_id") %>% 
-  ggplot(aes(x=intensity_green, y=intensity_red, shape=track_id, colour=colour)) +
+  ggplot(aes(x=intensity_green, y=intensity_red, shape=track_id, colour=dot_colour)) +
     theme_bw() +
     theme(panel.grid = element_blank()) +
     scale_colour_manual(values=c("forestgreen", "red")) +
@@ -34,13 +36,14 @@ plot_colour_timeline <- function(dat, cellid) {
   
   tcks <- make_time_ticks()
   d <- dc$intensities %>% 
+    pivot_wider(id_cols=c(id, track_id, frame), values_from=intensity, names_from=chn_colour) %>% 
     left_join(dc$track_colour, by="track_id") %>%
-    left_join(dc$times, by=c("id", "track_id")) %>% 
-    mutate(intensity_diff = intensity_green - intensity_red) %>% 
+    left_join(dc$times, by=c("id", "track_id", "frame")) %>% 
+    mutate(intensity_diff = green - red) %>% 
     arrange(frame, desc(intensity_diff)) %>% 
     group_by(frame) %>% 
     mutate(
-      good = identical(colour, sort(colour)) & n() > 1 & !(n() == 2 & first(colour) == last(colour)),
+      good = identical(dot_colour, sort(dot_colour)) & n() > 1 & !(n() == 2 & first(dot_colour) == last(dot_colour)),
       d_min = min(intensity_diff),
       d_max = max(intensity_diff)
     ) %>% 
@@ -61,7 +64,7 @@ plot_colour_timeline <- function(dat, cellid) {
     geom_hline(yintercept = 0, colour="blue", alpha=0.3, linetype="dashed") +
     geom_vline(data = d_bad, aes(xintercept = time_nebd), colour="grey90", size=3) +
     geom_segment(data = d_seg, aes(x=time_nebd, xend=time_nebd, y=d_min, yend=d_max), colour="grey60") +
-    geom_point(data = d, aes(x=time_nebd, y=intensity_diff, shape=track_id, colour=colour)) +
+    geom_point(data = d, aes(x=time_nebd, y=intensity_diff, shape=track_id, colour=dot_colour)) +
     geom_text(data = dsum, aes(x=time_nebd, y=min_d, label=letter), vjust=0.6) +
     geom_text(data = dsum, aes(x=time_nebd, y=min_d, label=n_dot, fontface=ff), vjust=-0.6) +
     scale_colour_manual(values=c("forestgreen", "red")) +
@@ -282,11 +285,14 @@ plot_rg_angle <- function(dp, params, brks = seq(-50, 50, 10), facet="condition"
 }
 
 
-plot_intensity_sn <- function(xyz, cond) {
-  xyz %>%
+plot_intensity_sn <- function(d, cond) {
+  d$intensities %>%
+    select(-id) %>%
+    distinct() %>% 
+    left_join(d$metadata, by="cell_id") %>% 
     filter(condition == cond) %>% 
-    select(mcell, colour, time_nebd, intensity, background) %>% 
-    mutate(SN = intensity / background) %>% 
+    select(mcell, chn_colour, time_nebd, intensity, background) %>% 
+    mutate(SN = intensity / background, chn_colour = factor(chn_colour, levels=c("red", "green"))) %>% 
     group_split(mcell) %>% 
     map(function(w) {
       g <- ggplot(w) +
@@ -297,10 +303,11 @@ plot_intensity_sn <- function(xyz, cond) {
       g1 <- g +
         geom_point(aes(x=time_nebd, y=intensity), shape=1) +
         geom_point(aes(x=time_nebd, y=background), shape=16) +
-        facet_wrap(~colour, ncol=1, scales="free_y") 
+        facet_wrap(~chn_colour, ncol=1, scales="free_y") +
+        labs(title = first(w$mcell))
       g2 <- g +
         geom_point(aes(x=time_nebd, y=SN), colour="black") +
-        facet_wrap(~colour, ncol=1, scales="free_y") 
+        facet_wrap(~chn_colour, ncol=1, scales="free_y") 
       plot_grid(g1, g2, nrow = 1, align="h")
     }) %>% 
     plot_grid(plotlist = ., ncol=1, align="v")

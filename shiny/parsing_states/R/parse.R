@@ -59,7 +59,7 @@ parse_one_state <- function(ds, params) {
     m <- as.matrix(ds[, c("x", "y", "z")])
     d <- dist_xyz(m)
     # sometimes we see two dots with the same colour
-    clr <- ds$colour
+    clr <- ds$dot_colour
     if(clr[1] == clr[2]) {
       if(clr[1] == "red") {
         r <- d
@@ -82,7 +82,7 @@ parse_one_state <- function(ds, params) {
   
   else if(n_dots == 3) {
     ds <- ds[order(ds$n_colour), ]  # much faster than arrange
-    clr <- ds$colour
+    clr <- ds$dot_colour
     m <- as.matrix(ds[, c("x", "y", "z")])
     a <- dist_xyz(m[c(1,2),])
     b <- dist_xyz(m[c(1,3),])
@@ -186,8 +186,8 @@ parse_black <- function(d, params) {
 #' @export
 parse_states <- function(xyz, params) {
   xyz %>% 
-    select(cell_id, frame, x, y, z, n_colour, colour, time, time_nebd) %>% 
-    arrange(colour) %>% 
+    select(cell_id, frame, x, y, z, n_colour, dot_colour, time, time_nebd) %>% 
+    arrange(dot_colour) %>% 
     group_split(cell_id, frame) %>% 
     map_dfr(~parse_one_state(.x, params)) %>% 
     mutate_at(vars(frame, time, time_nebd, dist_a, dist_b, dist_r, dist_g, angle_ab, angle_rg), as.numeric) %>%

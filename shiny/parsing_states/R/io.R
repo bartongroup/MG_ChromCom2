@@ -43,7 +43,7 @@ get_info <- function(path) {
     mutate_at(vars(name, cell_line, condition, cellcon, movie, mcell), as_factor)
     
   trcol <- map_dfr(meta$info_file, ~readxl::read_excel(.x, sheet="trackid")) %>%
-    set_names(c("name", "track_id", "colour")) %>%
+    set_names(c("name", "track_id", "dot_colour")) %>%
     mutate(track_id = as.character(as.integer(track_id))) %>% 
     left_join(select(meta, name, cell_id), by="name")
   
