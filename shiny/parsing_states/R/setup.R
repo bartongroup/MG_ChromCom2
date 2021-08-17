@@ -39,3 +39,6 @@ BACKGROUND_SHEETS <- c(
   "Time"
 )
 
+CONDITIONS <- tibble(
+  condition = c("NCAPD2_siRNA", "NCAPD3_siRNA", "no_siRNA")
+)

@@ -166,25 +166,25 @@ knitr::include_graphics("rules.png")
 This figure demonstrates how state tracking works. The shapes indicate number of dots detected, the colour indicates the state. The horizontal dashed lines show the distance limits applied.
 
 ```{r fig_example_tracks, fig.width=10, fig.height=25}
-tar_read(fig_cells_state_distance)
+tar_read(fig_cells_state_distance_no_siRNA)
 ```
 
 This is a more traditional look at the data:
 
 ```{r fig_cells_map, fig.width=10, fig.height=6}
-tar_read(fig_cells_map)
+tar_read(fig_cells_map_no_siRNA)
 ```
 
 What might be of interest, is the distribution of distances between dots. The next figure shows the aggregated distribution across all cells, for two, three and four dots detected. In case of four dots both distances are plotted, hence there are twice as many data points than images. Also, there are pink states below the limit (0.4 µm) - these are the cases where only one distance is below the limit.
 
 ```{r fig_distance_distribution, fig.width=10, fig.height=4}
-tar_read(fig_cells_distance_distribution)
+tar_read(fig_cells_distance_distribution_no_siRNA)
 ```
 
 Another plot showing all distances (a, b, r and g):
 
 ```{r fig_all_distances, fig.width=10, fig.height=25}
-tar_read(fig_all_distances)
+tar_read(fig_all_distances_no_siRNA)
 ```
 
 ## Red-red/green-green angle
@@ -221,6 +221,31 @@ tar_read(fig_rg_angle)
 
 Indeed, most of the excessive angles appear when r or g are small. Perhaps, with brown-pink limit set to 0.5, these high angles can be attributed to brown.
 
+## Signal-to-noise
+
+### no_siRNA
+
+```{r fig_sn_1, fig.width=7, fig.height=20}
+tar_read(fig_intensity_sn_no_siRNA)
+```
+
+### NCAPD2_siRNA
+
+```{r fig_sn_2, fig.width=7, fig.height=20}
+tar_read(fig_intensity_sn_NCAPD2_siRNA) 
+```
+
+### NCAPD3_siRNA
+
+```{r fig_sn_3, fig.width=7, fig.height=20}
+tar_read(fig_intensity_sn_NCAPD3_siRNA)
+```
+
+### All data combined
+
+```{r fig_sn_comb, fig.width=8, fig.height=5}
+tar_read(fig_intensity_sn_combined)
+```
 
 ## Session info
 

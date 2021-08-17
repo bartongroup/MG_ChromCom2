@@ -285,32 +285,54 @@ plot_rg_angle <- function(dp, params, brks = seq(-50, 50, 10), facet="condition"
 }
 
 
-plot_intensity_sn <- function(d, cond) {
+get_intensity_sn <- function(d) {
   d$intensities %>%
     distinct() %>% 
+    filter(dot_colour == chn_colour) %>% 
     left_join(d$metadata, by="cell_id") %>% 
+    mutate(SN = intensity / background, chn_colour = factor(chn_colour, levels=c("red", "green")))
+}
+
+plot_intensity_sn <- function(d, cond) {
+  di <- get_intensity_sn(d)
+  sn_max <- max(di$SN, na.rm=TRUE)
+    
+  di %>% 
     filter(condition == cond) %>% 
-    select(mcell, dot_colour, chn_colour, time_nebd, intensity, background) %>% 
-    mutate(SN = intensity / background, chn_colour = factor(chn_colour, levels=c("red", "green"))) %>% 
+    select(mcell, dot_colour, chn_colour, time_nebd, intensity, background, SN) %>% 
     group_split(mcell) %>% 
     map(function(w) {
       g <- ggplot(w) +
         theme_bw() +
-        theme(panel.grid = element_blank()) +
-        scale_y_continuous(expand = expansion(mult = c(0, 0.05)), limits = c(0, NA))
-      
+        theme(panel.grid = element_blank())
       g1 <- g +
         geom_point(aes(x=time_nebd, y=intensity, colour=dot_colour)) +
         geom_point(aes(x=time_nebd, y=background)) +
-        scale_colour_manual(values=c("forestgreen", "red")) +
+        scale_colour_manual(values=c("forestgreen", "red3")) +
+        scale_y_continuous(expand = expansion(mult = c(0, 0.05)), limits = c(0, NA)) +
         facet_wrap(~chn_colour, ncol=1, scales="free_y") +
-        labs(title = first(w$mcell)) +
+        labs(x = "Time since NEBD (min)", title = first(w$mcell)) +
         theme(legend.position = "none")
       g2 <- g +
+        theme(legend.position = "none") +
         geom_point(aes(x=time_nebd, y=SN, colour=dot_colour)) +
+        geom_smooth(aes(x=time_nebd, y=SN), method="loess", se=FALSE, colour="black") +
         facet_wrap(~chn_colour, ncol=1, scales="free_y") +
-        scale_colour_manual(values=c("forestgreen", "red"))
+        scale_colour_manual(values=c("forestgreen", "red3")) +
+        scale_y_continuous(expand = expansion(mult = c(0, 0.05)), limits = c(0, sn_max)) +
+        labs(x = "Time since NEBD (min)")
       plot_grid(g1, g2, nrow = 1, align="h")
     }) %>% 
     plot_grid(plotlist = ., ncol=1, align="v")
+}
+
+plot_intensity_sn_combined <- function(d) {
+  di <- get_intensity_sn(d)
+  di %>% 
+    ggplot(aes(x=time_nebd, y=SN)) +
+    theme_bw() +
+    geom_point() +
+    facet_wrap(~chn_colour) +
+    scale_y_continuous(minor_breaks=seq(0,5,0.1), breaks=seq(0, 5, 0.5)) +
+    labs(x = "Time since NEBD (min)", y="S/N")
 }
