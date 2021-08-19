@@ -12,7 +12,7 @@ make_time_ticks <- function(val.min=-200, val.max=200, lab.step=5) {
 # input: one cell from dat_cells
 plot_colour_identification <- function(dc) {
   ints <- dc$intensities %>% 
-    pivot_wider(id_cols=c(id, track_id, frame, time_nebd), names_from=chn_colour, values_from=intensity, names_prefix = "intensity_")
+    pivot_wider(id_cols=c(id, track_id, frame, time_nebd), names_from=chn_colour, values_from=dots_mean, names_prefix = "intensity_")
   mn <- min(c(ints$intensity_red, ints$intensity_green))
   mx <- max(c(ints$intensity_red, ints$intensity_green))
   ints %>% 
@@ -31,12 +31,12 @@ plot_colour_identification <- function(dc) {
 # Compare to parsed positional data
 # Highlight disparities
 plot_colour_timeline <- function(dat, cellid) {
-  dc <- dat$celldat[[cellid]]
+  dc <- dat$dotsdat[[cellid]]
   dp <- dat$parsed %>% filter(cell_id == cellid)
   
   tcks <- make_time_ticks()
   d <- dc$intensities %>% 
-    pivot_wider(id_cols=c(id, track_id, frame), values_from=intensity, names_from=chn_colour) %>% 
+    pivot_wider(id_cols=c(id, track_id, frame), values_from=dots_mean, names_from=chn_colour) %>% 
     left_join(dc$track_colour, by="track_id") %>%
     left_join(dc$times, by=c("id", "track_id", "frame")) %>% 
     mutate(intensity_diff = green - red) %>% 
@@ -285,12 +285,18 @@ plot_rg_angle <- function(dp, params, brks = seq(-50, 50, 10), facet="condition"
 }
 
 
+# Calculate signal-to-noise from intensity data
 get_intensity_sn <- function(d) {
   d$intensities %>%
     distinct() %>% 
     filter(dot_colour == chn_colour) %>% 
     left_join(d$metadata, by="cell_id") %>% 
-    mutate(SN = intensity / background, chn_colour = factor(chn_colour, levels=c("red", "green")))
+    mutate(
+      intensity = dots_max,
+      background = extvol_min,
+      SN = intensity / background,
+      chn_colour = factor(chn_colour, levels=c("red", "green"))
+    )
 }
 
 plot_intensity_sn <- function(d, cond) {
@@ -299,7 +305,7 @@ plot_intensity_sn <- function(d, cond) {
     
   di %>% 
     filter(condition == cond) %>% 
-    select(mcell, dot_colour, chn_colour, time_nebd, intensity, background, SN) %>% 
+    #select(mcell, dot_colour, chn_colour, time_nebd, intensity, background, SN) %>% 
     group_split(mcell) %>% 
     map(function(w) {
       g <- ggplot(w) +
@@ -335,4 +341,73 @@ plot_intensity_sn_combined <- function(d) {
     facet_wrap(~chn_colour) +
     scale_y_continuous(minor_breaks=seq(0,5,0.1), breaks=seq(0, 5, 0.5)) +
     labs(x = "Time since NEBD (min)", y="S/N")
+}
+
+
+colourise_dendrogram <- function(dend, group) {
+  labs <- group %>% as.character()
+  ord <- order.dendrogram(dend)
+  ordered_labs <- labs[ord]
+  dend %>%
+    dendextend::set("labels_col", value=ordered_labs) %>% 
+    dendextend::set("leaves_col", value=ordered_labs) %>% 
+    dendextend::set("branches_lwd", value=0.2) %>% 
+    dendextend::set("leaves_cex", value=1.2) %>% 
+    dendextend::set("labels_cex", value=0.8) %>%
+    dendextend::set("leaves_pch", value=19)
+}
+
+make_correlation_dendrogram <- function(tab) {
+  corr.mat <- cor(tab, use="complete.obs")
+  dis <- as.dist(1 - corr.mat)  # dissimilarity matrix
+  hclust(dis) %>%
+    as.dendrogram()
+}
+
+
+plot_state_dendrogram <- function(dp, cond) {
+  dfilt <- dp %>% 
+    filter(n_dot == 4 & condition == cond)
+  M <- dfilt %>%
+    mutate(angle_ab = replace_na(angle_ab, 0), angle_rg = replace_na(angle_rg, 0)) %>%
+    select(starts_with("dist"), starts_with("angle")) %>%
+    as.matrix()
+  rownames(M) <- sprintf("%3d : a=%4.2f b=%4.2f ang=%3.0f", dfilt$time_nebd, dfilt$dist_a, dfilt$dist_b, dfilt$angle_rg * 180 / pi)
+  M %>%
+    dist() %>%
+    hclust() %>%
+    as.dendrogram() %>%
+    colourise_dendrogram(dfilt$state)
+  
+  
+#    as.ggdend() %>%
+#  ggplot(labels=TRUE, horiz=TRUE) +
+    #coord_polar(theta="x") +
+    #scale_y_reverse(expand = c(0.1, 0)) +
+#    ggtitle(cond)
+}
+
+
+plot_intensity_mean_volume <- function(rw, cellids, chn="1") {
+  map_dfr(cellids, function(cellid) {
+    S <- rw$cells[[cellid]][[glue("Intensity Sum Ch={chn} Img=1")]]
+    M <- rw$cells[[cellid]][[glue("Intensity Mean Ch={chn} Img=1")]]
+    V <- rw$cells[[cellid]]$Volume
+    SB <- rw$background[[cellid]][[glue("Intensity Sum Ch={chn} Img=1")]]
+    MB <- rw$background[[cellid]][[glue("Intensity Mean Ch={chn} Img=1")]]
+    VB <- rw$background[[cellid]]$Volume
+    sgn <- S %>% full_join(M, by="ID") %>% full_join(V, by="ID") %>%
+      select(`Intensity Mean`, `Intensity Sum`, Volume) %>% 
+      add_column(what = "Dots")
+    bkg <- SB %>% full_join(MB, by="ID") %>% full_join(VB, by="ID") %>%
+      select(`Intensity Mean`, `Intensity Sum`, Volume) %>% 
+      add_column(what = "Extended volume")
+    bind_rows(sgn, bkg) %>% 
+      add_column(cellid = cellid)
+  }) %>% 
+  
+  ggplot(aes(x=`Intensity Mean`, y=`Intensity Sum` / Volume)) +
+    theme_bw() +
+    geom_point() +
+    facet_grid(cellid~what)
 }

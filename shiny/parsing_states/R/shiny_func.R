@@ -18,7 +18,7 @@ initial_cellcons <- function(meta) {
 reload_data <- function(data.path, CELL_SHEETS, cache.file) {
   info <- get_info(data.path)
   dat <- read_cells(info, CELL_SHEETS) %>% 
-    process_raw_data(with_celldat=FALSE)
+    process_raw_data()
   write_rds(dat, cache.file)
 }
 

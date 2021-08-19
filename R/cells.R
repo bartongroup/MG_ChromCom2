@@ -22,7 +22,7 @@ get_timepoint_raw_data <- function(rw, xyz, cellid, tim) {
     pull(id)
   sheets <- c("Time", "Position", "Intensity Max Ch=1 Img=1", "Intensity Max Ch=2 Img=1")
   map(sheets, function(sheet) {
-    rw$cells[[cellid]][[sheet]] %>% filter(ID %in% ids) %>% mutate(TrackID = as.character(as.integer(TrackID)))
+    rw$dots[[cellid]][[sheet]] %>% filter(ID %in% ids) %>% mutate(TrackID = as.character(as.integer(TrackID)))
   }) %>% 
     set_names(sheets)
 }

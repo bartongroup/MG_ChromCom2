@@ -30,36 +30,79 @@ process_times <- function(r, cellid, meta) {
   )
 }
 
+
+process_volume <- function(r, volname) {
+  if(is.null(r$Volume[["TrackID"]])) {
+    r$Volume %>% 
+      select(ID, Volume) %>% 
+      set_names(c("id", volname))
+  } else {
+    r$Volume %>% 
+      mutate(track_id = as.character(as.integer(TrackID))) %>% 
+      select(ID, track_id, Volume) %>% 
+      set_names(c("id", "track_id", volname))
+  }
+}
+
 #' Process raw channel colour data
 #'
 #' @param r Raw data, one cell from the object created by read_cells.
-#' @param stat Statistic for channel intensities, e.g. "Mean" or "Median"
-#' @param intensity_name How to name column with combined intensities.
+#' @param stats Vector of statistics for channel intensities, e.g. "Mean" or "Median"
+#' @param intensity_prefix How to prefix column with combined intensities.
 #'
 #' @return
 #' @export
 #'
 #' @examples
-process_channel_intensities <- function(r, stat, intensity_name = "intensity", track_colour) {
-  ch1 <- r[[glue("Intensity {stat} Ch=1 Img=1")]] %>% 
-    select(
-      intensity_red = glue("Intensity {stat}"),
-      track_id = TrackID,
-      id = ID
-    ) %>% 
-    mutate(track_id = as.character(as.integer(track_id))) 
-  
-  ch2 <- r[[glue("Intensity {stat} Ch=2 Img=1")]] %>% 
-    select(
-      intensity_green = glue("Intensity {stat}"),
-      id = ID
-    ) 
-  
-  intensities <- full_join(ch1, ch2, by="id") %>%
-    select(id, track_id, intensity_red, intensity_green) %>% 
-    pivot_longer(-c(id, track_id), names_to="chn_colour", values_to=intensity_name, names_prefix = "intensity_") %>% 
+process_dots_intensities <- function(r, stats, intensity_prefix, track_colour) {
+  map_dfr(stats, function(stat) {
+    ch1 <- r[[glue("Intensity {stat} Ch=1 Img=1")]] %>% 
+      select(
+        red = glue("Intensity {stat}"),
+        track_id = TrackID,
+        id = ID
+      ) %>% 
+      mutate(track_id = as.character(as.integer(track_id))) 
+    
+    ch2 <- r[[glue("Intensity {stat} Ch=2 Img=1")]] %>% 
+      select(
+        green = glue("Intensity {stat}"),
+        id = ID
+      ) 
+    
+    full_join(ch1, ch2, by="id") %>%
+      select(id, track_id, red, green) %>% 
+      pivot_longer(-c(id, track_id), names_to="chn_colour", values_to="intensity") %>% 
+      add_column(what = paste(intensity_prefix, tolower(stat), sep="_"))
+  }) %>% 
+    pivot_wider(id_cols=c(id, track_id, chn_colour), values_from=intensity, names_from=what) %>% 
     left_join(track_colour, by="track_id") %>% 
     relocate(dot_colour, .after="track_id")
+}
+
+
+process_extvol_intensities <- function(r, stats, intensity_prefix, track_colour) {
+  map_dfr(stats, function(stat) {
+    ch1 <- r[[glue("Intensity {stat} Ch=1 Img=1")]] %>% 
+      select(
+        red = glue("Intensity {stat}"),
+        time = Time,
+        id = ID
+      ) 
+    
+    ch2 <- r[[glue("Intensity {stat} Ch=2 Img=1")]] %>% 
+      select(
+        green = glue("Intensity {stat}"),
+        id = ID
+      )
+    
+    full_join(ch1, ch2, by="id") %>%
+      select(id, red, green) %>% 
+      pivot_longer(-id, names_to="chn_colour", values_to="intensity") %>% 
+      add_column(what = paste(intensity_prefix, tolower(stat), sep="_"))
+  }) %>% 
+    distinct() %>% 
+    pivot_wider(id_cols=c(id, chn_colour), values_from=intensity, names_from=what)
 }
 
 
@@ -72,19 +115,21 @@ process_channel_intensities <- function(r, stat, intensity_name = "intensity", t
 #' @param cellid Full cell id, e.g. "TT206_3"
 #' @param track_colours Tibble with track colours, part of the object created by read_cells.
 #' @param meta Metadata tibble.
-#' @param stat Statistic for channel intensities, e.g. "Mean" or "Median"
+#' @param stats Vector of statistics for channel intensities, e.g. "Mean" or "Median"
 #'
 #' @return A list with lots of goodies.
 #' @export
-process_cell_raw_data <- function(r, cellid, track_colours, meta, stat) {
+process_dots_raw_data <- function(r, cellid, track_colours, meta, stats) {
   
   track_colour <- track_colours %>%
     filter(cell_id == cellid) %>%
     select(track_id, dot_colour)
   
+  volumes <- process_volume(r, "dots_volume")
   time_track <- process_times(r, cellid, meta)
-  intensities <- process_channel_intensities(r, stat, "intensity", track_colour) %>% 
-    left_join(time_track$times %>%  select(id, frame, time_nebd), by="id")
+  intensities <- process_dots_intensities(r, stats, "dots", track_colour) %>% 
+    left_join(time_track$times %>%  select(id, frame, time_nebd), by="id") %>% 
+    left_join(volumes, by=c("id", "track_id"))
   
   pos <- r$Position %>% 
     select(
@@ -128,9 +173,9 @@ process_cell_raw_data <- function(r, cellid, track_colours, meta, stat) {
 #'
 #' @return A named list, one element per cell.
 #' @export
-process_cells_raw_data <- function(raw, stat) {
+process_all_dots_raw_data <- function(raw, stats) {
   cells <- raw$metadata$cell_id
-  map(cells, ~process_cell_raw_data(raw$cells[[.x]], .x, raw$track_colours, raw$metadata, stat)) %>% 
+  map(cells, ~process_dots_raw_data(raw$dots[[.x]], .x, raw$track_colours, raw$metadata, stats)) %>% 
     set_names(cells)
 }
 
@@ -145,29 +190,16 @@ process_cells_raw_data <- function(raw, stat) {
 #'
 #' @return A list with lots of goodies.
 #' @export
-process_cell_background_data <- function(r, cellid, meta, stat) {
+process_extvol_raw_data <- function(r, cellid, meta, stats) {
   
   if(is.null(r)) {
-    bkg <- tibble(
+    extvol <- tibble(
       frame = numeric(),
       chn_colour = character(),
       background = numeric(),
       time = numeric()
     )
   } else {
-    
-    ch1 <- r[[glue("Intensity {stat} Ch=1 Img=1")]] %>% 
-      select(
-        background_red = glue("Intensity {stat}"),
-        time = Time,
-        id = ID
-      ) 
-    
-    ch2 <- r[[glue("Intensity {stat} Ch=2 Img=1")]] %>% 
-      select(
-        background_green = glue("Intensity {stat}"),
-        id = ID
-      )
     
     times <- r$Time %>%
       set_names("time", "unit", "cat", "frame", "id") %>% 
@@ -177,17 +209,20 @@ process_cell_background_data <- function(r, cellid, meta, stat) {
       select(frame, time) %>% 
       distinct()
     
-    bkg <- full_join(ch1, ch2, by="id") %>%
-      select(id, background_red, background_green) %>% 
-      pivot_longer(-id, names_to="chn_colour", values_to="background", names_prefix = "background_") %>% 
+    volumes <- process_volume(r, "extvol_volume")
+    
+    extvol <- process_extvol_intensities(r, stats, "extvol", track_colour) %>% 
       left_join(select(times, id, frame), by="id") %>% 
-      group_by(frame, chn_colour) %>% 
-      summarise(background = mean(background)) %>% 
+      left_join(volumes, by="id") %>% 
+      pivot_longer(-c(id, frame, chn_colour)) %>% 
+      group_by(id, frame, chn_colour, name) %>% 
+      summarise(value = mean(value)) %>% 
+      pivot_wider(id_cols = c(id, frame, chn_colour)) %>% 
       left_join(frame_time, by="frame")
   }
     
   list(
-    background = bkg,
+    extvol = extvol,
     cell_id = cellid
   )
 }
@@ -199,9 +234,9 @@ process_cell_background_data <- function(r, cellid, meta, stat) {
 #'
 #' @return A named list, one element per cell.
 #' @export
-process_cells_background_data <- function(raw, stat="Mean") {
+process_all_extvol_raw_data <- function(raw, stats) {
   cells <- raw$metadata$cell_id
-  map(cells, ~process_cell_background_data(raw$background[[.x]], .x, raw$metadata, stat)) %>% 
+  map(cells, ~process_extvol_raw_data(raw$extvol[[.x]], .x, raw$metadata, stats)) %>% 
     set_names(cells)
 }
 
@@ -239,36 +274,35 @@ merge_cell_data <- function(d, what="dat") {
 #' raw = read_cells(metadata, CELL_SHEETS)
 #' dat = process_raw_data(raw) %>% parse_xyz_data(params)
 #' 
-process_raw_data <- function(rw, z_correction = 0.85, with_celldat=TRUE, cell_stat="Max", bkg_stat="Mean") {
+process_raw_data <- function(rw, z_correction = 0.85,
+                             dots_stats=c("Sum", "Max", "Mean"),
+                             extvol_stats=c("Sum", "Mean", "Min")) {
   md <- rw$metadata %>% select(cell_id, cell_line, condition, movie, cell, cellcon, mcell)
   
-  celldat <- process_cells_raw_data(rw, cell_stat)
-  xyz <- merge_cell_data(celldat) %>%
+  dotsdat <- process_all_dots_raw_data(rw, dots_stats)
+  xyz <- merge_cell_data(dotsdat) %>%
     left_join(md, by="cell_id") %>%
     mutate(
       z = z * z_correction,
       dot_colour = factor(dot_colour, levels=c("green", "red"))
     )
-  
-  ints <- merge_cell_data(celldat, "intensities") %>% 
+  ints_dots <- merge_cell_data(dotsdat, "intensities") %>% 
     select(-c(id, track_id)) %>% 
     distinct()
-  bkgs <- process_cells_background_data(rw, bkg_stat) %>% merge_cell_data("background")
   
-  intensities <- ints %>% 
-    left_join(bkgs, by=c("cell_id", "frame", "chn_colour")) %>% 
-    select(cell_id, frame, time, time_nebd, dot_colour, chn_colour, intensity, background)
+  ints_extvol <- process_all_extvol_raw_data(rw, extvol_stats) %>%
+    merge_cell_data("extvol")
   
-  r <- list(
+  intensities <- ints_dots %>% 
+    left_join(ints_extvol, by=c("cell_id", "frame", "chn_colour")) %>% 
+    select(cell_id, frame, time, time_nebd, dot_colour, chn_colour, starts_with("dots"), starts_with("extvol"))
+  
+  list(
     metadata = md,
     xyz = xyz,
-    intensities = intensities
+    intensities = intensities,
+    dotsdat = dotsdat
   )
-  if(with_celldat) {
-    r$celldat <- celldat
-    r$bkg <- bkgs
-  }
-  r
 }
 
 

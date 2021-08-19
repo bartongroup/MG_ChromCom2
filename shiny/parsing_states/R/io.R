@@ -127,8 +127,8 @@ read_cells <- function(info, sheets, BACKGROUND_SHEETS) {
   list(
     metadata = info$metadata,
     track_colours = info$track_colours,
-    cells = cls,
-    background = bkg
+    dots = cls,
+    extvol = bkg
   )
 }
 

@@ -13,7 +13,7 @@ mod_parse_data_ui <- function(id) {
     sliderInput(ns("dist.brown_redpink"), "Brown/red-pink limit", value=DEFAULT_PARAMS$dist.brown_redpink, min=0, max=1, step=0.05, ticks=FALSE),
     sliderInput(ns("dist.red_pink"), "Red/pink limit (D)", value=DEFAULT_PARAMS$dist.red_pink, min=0, max=5, step=0.05, ticks=FALSE),
     sliderInput(ns("angle.red_pink"), "Red/pink angle (A)", value=DEFAULT_PARAMS$angle.red_pink, min=0, max=90, step=1, ticks=FALSE),
-    selectInput(ns("rule.red_pink"), "Red/pink rule", choices=red_pink_rules),
+    selectInput(ns("rule.red_pink"), "Red/pink rule", choices=RED_PINK_RULES),
     actionButton(ns("submit"), "Submit")
   )
 }
@@ -48,11 +48,11 @@ mod_parse_data <- function(id, state) {
         incProgress(1/4)
         dat <- read_cells(info, CELL_SHEETS)
         incProgress(1/4)
-        dat <- process_raw_data(dat, with_celldat=FALSE)
+        dat <- process_raw_data(dat)
         incProgress(1/4)
         write_rds(dat, cache_file)
         incProgress(1/4)
-        pars <- initial_parameters(dat$metadata)
+        pars <- DEFAULT_PARAMS
         updateSelectInput(session, "cellcon", choices=pars$cellcons)
       })
     })

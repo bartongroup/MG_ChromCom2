@@ -11,7 +11,7 @@ my_targets <- function() {
   )
   
   figures_cells <- list(
-    tar_target(fig_colour_ident_cell_1, plot_colour_identification(dat$celldat$`TT206-no_siRNA:1_1-1`)),
+    tar_target(fig_colour_ident_cell_1, plot_colour_identification(dat$dotsdat$`TT206-no_siRNA:1_1-1`)),
     tar_target(fig_colour_timeline_cell_1, plot_colour_timeline(dat, "TT206-no_siRNA:1_1-1")),
     tar_target(fig_angle_distribution, plot_angle_distribution(dat$parsed)),
     tar_target(fig_angle_timeline, plot_angle_timeline(dat$parsed)),
@@ -28,7 +28,8 @@ my_targets <- function() {
     tar_target(fig_all_distances, plot_all_distances(dat$parsed %>% filter(condition==condition), dat$params)),
     tar_target(fig_cells_distance_distribution, plot_distance_distribution(dat$parsed %>% filter(condition==condition), dat$params, cex=1.5)),
     tar_target(fig_cells_map, plot_state_map(dat$parsed %>% filter(condition==condition))),
-    tar_target(fig_intensity_sn, plot_intensity_sn(dat_pilot, condition))
+    tar_target(fig_intensity_sn, plot_intensity_sn(dat_pilot, condition)),
+    tar_target(pl_state_dendrogram, plot_state_dendrogram(dat$parsed, condition))
   )
 
   raw_examples <- list(

@@ -56,11 +56,4 @@ initial_cells <- initial_cellcons(initial_dat$metadata)
 min_time <- min(initial_dat$xyz$time_nebd)
 max_time <- max(initial_dat$xyz$time_nebd)
 
-# Possible red/pink rules
-
-red_pink_rules <- c(
-  "(a < D & b < D) | (ang < A & (a < D | b < D))",
-  "(a < D & b < D) & ang < A",
-  "(a < D | b < D) & ang < A"
-)
 

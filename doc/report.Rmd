@@ -187,6 +187,15 @@ Another plot showing all distances (a, b, r and g):
 tar_read(fig_all_distances_no_siRNA)
 ```
 
+## Dendrogam
+
+```{r fig_dendro_1, fig.width=6, fig.height=60}
+par(mar = c(2,2,2,10))
+tar_read(pl_state_dendrogram_no_siRNA) %>% 
+  plot(horiz=TRUE, main="no siRNA") 
+```
+
+
 ## Red-red/green-green angle
 
 Angle distribution between red-red and green-green vectors - only for cases with four dots.
@@ -232,19 +241,19 @@ tar_read(fig_intensity_sn_no_siRNA)
 ### NCAPD2_siRNA
 
 ```{r fig_sn_2, fig.width=7, fig.height=20}
-tar_read(fig_intensity_sn_NCAPD2_siRNA) 
+tar_read(fig_intensity_sn_NCAPD2_siRNA)
 ```
 
 ### NCAPD3_siRNA
 
 ```{r fig_sn_3, fig.width=7, fig.height=20}
-tar_read(fig_intensity_sn_NCAPD3_siRNA)
+tar_read(fig_intensity_sn_NCAPD3_siRNA) 
 ```
 
 ### All data combined
 
 ```{r fig_sn_comb, fig.width=8, fig.height=5}
-tar_read(fig_intensity_sn_combined)
+tar_read(fig_intensity_sn_combined) 
 ```
 
 ## Session info
