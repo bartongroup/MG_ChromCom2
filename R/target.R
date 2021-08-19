@@ -20,7 +20,9 @@ my_targets <- function() {
     tar_target(fig_distance_angle_timeline, plot_distance_angle(dat$parsed, dat$params, facet="win")),
     tar_target(fig_rg_angle, plot_rg_angle(dat$parsed, dat$params)),
     tar_target(fig_rg_angle_timeline, plot_rg_angle(dat$parsed, dat$params, facet="win")),
-    tar_target(fig_intensity_sn_combined, plot_intensity_sn_combined(dat_pilot))
+    tar_target(fig_intensity_sn_combined, plot_intensity_sn_combined(dat_pilot)),
+    tar_target(fig_intensity_mean_volume, plot_intensity_mean_volume(dat_pilot$intensities)),
+    tar_target(fig_intensity_mean_sum, plot_intensity_sum(dat_pilot$intensities,  "TT206-NCAPD2_siRNA:2_2-3"))
   )
   
   figures_per_condition <- tar_map(values=CONDITIONS,

@@ -250,6 +250,16 @@ tar_read(fig_intensity_sn_NCAPD2_siRNA)
 tar_read(fig_intensity_sn_NCAPD3_siRNA) 
 ```
 
+### Mean, sum intensity and volume
+
+```{r fig_mean_vol, fig.width=7, fig.height=20}
+tar_read(fig_intensity_mean_volume)
+```
+
+```{r fig_mean_sum, fig.width=7, fig.height=6}
+tar_read(fig_intensity_mean_sum)
+```
+
 ### All data combined
 
 ```{r fig_sn_comb, fig.width=8, fig.height=5}

@@ -388,26 +388,30 @@ plot_state_dendrogram <- function(dp, cond) {
 }
 
 
-plot_intensity_mean_volume <- function(rw, cellids, chn="1") {
-  map_dfr(cellids, function(cellid) {
-    S <- rw$cells[[cellid]][[glue("Intensity Sum Ch={chn} Img=1")]]
-    M <- rw$cells[[cellid]][[glue("Intensity Mean Ch={chn} Img=1")]]
-    V <- rw$cells[[cellid]]$Volume
-    SB <- rw$background[[cellid]][[glue("Intensity Sum Ch={chn} Img=1")]]
-    MB <- rw$background[[cellid]][[glue("Intensity Mean Ch={chn} Img=1")]]
-    VB <- rw$background[[cellid]]$Volume
-    sgn <- S %>% full_join(M, by="ID") %>% full_join(V, by="ID") %>%
-      select(`Intensity Mean`, `Intensity Sum`, Volume) %>% 
-      add_column(what = "Dots")
-    bkg <- SB %>% full_join(MB, by="ID") %>% full_join(VB, by="ID") %>%
-      select(`Intensity Mean`, `Intensity Sum`, Volume) %>% 
-      add_column(what = "Extended volume")
-    bind_rows(sgn, bkg) %>% 
-      add_column(cellid = cellid)
-  }) %>% 
-  
-  ggplot(aes(x=`Intensity Mean`, y=`Intensity Sum` / Volume)) +
+plot_intensity_mean_volume <- function(di, cellids=NULL) {
+  if(!is.null(cellids)) di <- di %>% filter(cell_id %in% cellids)
+  di %>% 
+    filter(chn_colour == dot_colour)  %>% 
+    mutate(id = row_number()) %>% 
+    select(id, dot_colour, cell_id, time_nebd, dots_sum, dots_mean, dots_volume, extvol_sum, extvol_mean, extvol_volume) %>% 
+    pivot_longer(-c(id, cell_id, time_nebd, dot_colour), names_sep = "_", names_to=c("from", "stat")) %>% 
+    pivot_wider(id_cols=c(id, cell_id, time_nebd, dot_colour, from), names_from=stat, values_from=value) %>% 
+  ggplot(aes(x=mean, y=sum / volume, colour = dot_colour)) +
+    theme_bw() +
+    theme(legend.position = "none") +
+    geom_point() +
+    facet_grid(cell_id ~ from) +
+    scale_colour_manual(values=c("forestgreen", "red3")) +
+    geom_smooth(aes(group=1), method="lm", colour="black", se=FALSE)
+}   
+
+plot_intensity_sum <- function(di, cellid) {
+  di %>%
+    filter(cell_id == cellid) %>% 
+    filter(chn_colour == dot_colour) %>% 
+  ggplot(aes(x=dots_mean, y=dots_sum, colour=dot_colour)) +
     theme_bw() +
     geom_point() +
-    facet_grid(cellid~what)
+    scale_colour_manual(values=c("forestgreen", "red3")) +
+    labs(title=cellid)
 }
