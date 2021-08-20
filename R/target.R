@@ -10,7 +10,7 @@ my_targets <- function() {
     tar_target(dat_pilot, process_raw_data(raw_pilot) %>% parse_xyz_data(DEFAULT_PARAMS))
   )
   
-  figures_cells <- list(
+  figures <- list(
     tar_target(fig_colour_ident_cell_1, plot_colour_identification(dat$dotsdat$`TT206-no_siRNA:1_1-1`)),
     tar_target(fig_colour_timeline_cell_1, plot_colour_timeline(dat, "TT206-no_siRNA:1_1-1")),
     tar_target(fig_angle_distribution, plot_angle_distribution(dat$parsed)),
@@ -22,7 +22,8 @@ my_targets <- function() {
     tar_target(fig_rg_angle_timeline, plot_rg_angle(dat$parsed, dat$params, facet="win")),
     tar_target(fig_intensity_sn_combined, plot_intensity_sn_combined(dat_pilot)),
     tar_target(fig_intensity_mean_volume, plot_intensity_mean_volume(dat_pilot$intensities)),
-    tar_target(fig_intensity_mean_sum, plot_intensity_sum(dat_pilot$intensities,  "TT206-NCAPD2_siRNA:2_2-3"))
+    tar_target(fig_intensity_mean_sum, plot_intensity_sum(dat_pilot$intensities,  "TT206-NCAPD2_siRNA:2_2-3")),
+    tar_target(fig_mean_sum_n, plot_mean_sum_n(dat_pilot$intensities))
   )
   
   figures_per_condition <- tar_map(values=CONDITIONS,
@@ -43,7 +44,7 @@ my_targets <- function() {
   c(
     read_data,
     raw_examples,
-    figures_cells,
+    figures,
     figures_per_condition
   ) 
 }

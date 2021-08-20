@@ -215,9 +215,9 @@ process_extvol_raw_data <- function(r, cellid, meta, stats) {
       left_join(select(times, id, frame), by="id") %>% 
       left_join(volumes, by="id") %>% 
       pivot_longer(-c(id, frame, chn_colour)) %>% 
-      group_by(id, frame, chn_colour, name) %>% 
+      group_by(frame, chn_colour, name) %>% 
       summarise(value = mean(value)) %>% 
-      pivot_wider(id_cols = c(id, frame, chn_colour)) %>% 
+      pivot_wider(id_cols = c(frame, chn_colour)) %>% 
       left_join(frame_time, by="frame")
   }
     
@@ -230,13 +230,13 @@ process_extvol_raw_data <- function(r, cellid, meta, stats) {
 
 #' Process data from all backgrounds (internal function)
 #'
-#' @param raw Raw data object crated by read_cells
+#' @param rw Raw data object crated by read_cells
 #'
 #' @return A named list, one element per cell.
 #' @export
-process_all_extvol_raw_data <- function(raw, stats) {
-  cells <- raw$metadata$cell_id
-  map(cells, ~process_extvol_raw_data(raw$extvol[[.x]], .x, raw$metadata, stats)) %>% 
+process_all_extvol_raw_data <- function(rw, stats) {
+  cells <- rw$metadata$cell_id
+  map(cells, ~process_extvol_raw_data(rw$extvol[[.x]], .x, rw$metadata, stats)) %>% 
     set_names(cells)
 }
 

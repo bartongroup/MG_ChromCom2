@@ -293,7 +293,7 @@ get_intensity_sn <- function(d) {
     left_join(d$metadata, by="cell_id") %>% 
     mutate(
       intensity = dots_max,
-      background = extvol_min,
+      background = extvol_mean,
       SN = intensity / background,
       chn_colour = factor(chn_colour, levels=c("red", "green"))
     )
@@ -314,7 +314,7 @@ plot_intensity_sn <- function(d, cond) {
       g1 <- g +
         geom_point(aes(x=time_nebd, y=intensity, colour=dot_colour)) +
         geom_point(aes(x=time_nebd, y=background)) +
-        scale_colour_manual(values=c("forestgreen", "red3")) +
+        scale_colour_manual(values=c("forestgreen", "red2")) +
         scale_y_continuous(expand = expansion(mult = c(0, 0.05)), limits = c(0, NA)) +
         facet_wrap(~chn_colour, ncol=1, scales="free_y") +
         labs(x = "Time since NEBD (min)", title = first(w$mcell)) +
@@ -324,7 +324,7 @@ plot_intensity_sn <- function(d, cond) {
         geom_point(aes(x=time_nebd, y=SN, colour=dot_colour)) +
         geom_smooth(aes(x=time_nebd, y=SN), method="loess", se=FALSE, colour="black") +
         facet_wrap(~chn_colour, ncol=1, scales="free_y") +
-        scale_colour_manual(values=c("forestgreen", "red3")) +
+        scale_colour_manual(values=c("forestgreen", "red2")) +
         scale_y_continuous(expand = expansion(mult = c(0, 0.05)), limits = c(0, sn_max)) +
         labs(x = "Time since NEBD (min)")
       plot_grid(g1, g2, nrow = 1, align="h")
@@ -401,7 +401,7 @@ plot_intensity_mean_volume <- function(di, cellids=NULL) {
     theme(legend.position = "none") +
     geom_point() +
     facet_grid(cell_id ~ from) +
-    scale_colour_manual(values=c("forestgreen", "red3")) +
+    scale_colour_manual(values=c("forestgreen", "red2")) +
     geom_smooth(aes(group=1), method="lm", colour="black", se=FALSE)
 }   
 
@@ -409,9 +409,23 @@ plot_intensity_sum <- function(di, cellid) {
   di %>%
     filter(cell_id == cellid) %>% 
     filter(chn_colour == dot_colour) %>% 
-  ggplot(aes(x=dots_mean, y=dots_sum, colour=dot_colour)) +
+    mutate(volume = sprintf("%4.2f", dots_volume)) %>% 
+  ggplot(aes(x=dots_mean, y=dots_sum, colour=dot_colour, shape=volume)) +
     theme_bw() +
+   # theme(legend.position = "none") +
     geom_point() +
-    scale_colour_manual(values=c("forestgreen", "red3")) +
-    labs(title=cellid)
+    scale_colour_manual(values=c("forestgreen", "red2")) +
+    labs(x = "Mean", y = "Sum", title=cellid)
+}
+
+plot_mean_sum_n <- function(di) {
+  di %>%
+    mutate(n = dots_sum / dots_mean) %>%
+  ggplot(aes(x=cell_id, y=n)) +
+    theme_bw() +
+    theme(panel.grid.minor = element_blank()) +
+    geom_beeswarm(cex=0.1) +
+    scale_y_log10(breaks=c(1,2,5,10,20,50,100,200,500,1000,2000)) +
+    coord_flip() +
+    labs(x="N = Sum/Mean", y=NULL)
 }

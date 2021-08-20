@@ -232,16 +232,18 @@ Indeed, most of the excessive angles appear when r or g are small. Perhaps, with
 
 ## Signal-to-noise
 
+We define signal as the maximum dot intensity and noise as the mean across extended volume. I match colours here, that is for the red dot I use extended volume in the red channel, and the same for green. The figures below show the intensity (left) for the extended volume background (black) and a corresponding dot intensity (red and green). The right panels show signal-to-noise, with a smooth line fitted for guidance.
+
 ### no_siRNA
 
 ```{r fig_sn_1, fig.width=7, fig.height=20}
-tar_read(fig_intensity_sn_no_siRNA)
+tar_read(fig_intensity_sn_no_siRNA) 
 ```
 
 ### NCAPD2_siRNA
 
 ```{r fig_sn_2, fig.width=7, fig.height=20}
-tar_read(fig_intensity_sn_NCAPD2_siRNA)
+tar_read(fig_intensity_sn_NCAPD2_siRNA) 
 ```
 
 ### NCAPD3_siRNA
@@ -250,21 +252,44 @@ tar_read(fig_intensity_sn_NCAPD2_siRNA)
 tar_read(fig_intensity_sn_NCAPD3_siRNA) 
 ```
 
-### Mean, sum intensity and volume
+
+### All data combined
+
+The following figure contains all data combined. It can be used to judge where to make a low S/N cut.
+
+```{r fig_sn_comb, fig.width=8, fig.height=5}
+tar_read(fig_intensity_sn_combined) 
+```
+
+
+
+## Mean, sum intensity and volume
+
+I am trying to understand what the quantities provided in Excel sheets mean. I assume that $Sum$ is the total intensity across the volume $Volume$. The mean intensity should be 
+
+\[Mean = \frac{Sum}{N},\]
+
+where $N$ is the number of pixels. It is tempting to assume that $N$ is directly proportional to $Volume$, but is that so? The figures below show data from dots (left) and extended volume (right). On the horizontal axis is the $Mean$, on the vertical axis is $Sum/Volume$. If our assumptions are correct, we should see a straight line.
 
 ```{r fig_mean_vol, fig.width=7, fig.height=20}
 tar_read(fig_intensity_mean_volume)
 ```
 
+It seems that $Volume \propto N$ is true for extended volume. However, the picture in the dots is more complicated. Have a look at one particular cell. This time I plot $Sum$ versus $Mean$:
+
 ```{r fig_mean_sum, fig.width=7, fig.height=6}
-tar_read(fig_intensity_mean_sum)
+tar_read(fig_intensity_mean_sum) 
 ```
 
-### All data combined
+I can see 8 separate straight lines, suggesting 8 distinct values of $N$. However, there are only two $Volume$ values here and they don't seem to correlate with the slope. Therefore, the equation $Mean = Sum/Volume$ does not work.
 
-```{r fig_sn_comb, fig.width=8, fig.height=5}
-tar_read(fig_intensity_sn_combined) 
+We can look at this from the other end. If $Mean = Sum/N$, we cen reconstruct $N = Sum/Mean$. Here it is for all our cells:
+
+```{r fig_n, fig.width=10, fig.height=10}
+tar_read(fig_mean_sum_n)
 ```
+
+Indeed, dividing $Sum$ by $Mean$ returns an integer number, typically around 10, but for the last cell, there is a group of ns between 100 and 1000. I don't think these are pixels, but whatever they are they are definitely whole numbers.
 
 ## Session info
 
