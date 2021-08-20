@@ -333,13 +333,17 @@ plot_intensity_sn <- function(d, cond) {
 }
 
 plot_intensity_sn_combined <- function(d) {
-  di <- get_intensity_sn(d)
+  di <- get_intensity_sn(d) %>% 
+    left_join(select(d$parsed, c(cell_id, frame, state)), by=c("cell_id", "frame")) %>% 
+    mutate(state = replace(state, state == "lightblue", "darkblue"))
   di %>% 
-    ggplot(aes(x=time_nebd, y=SN)) +
+    ggplot(aes(x=time_nebd, y=SN, colour=state)) +
     theme_bw() +
+    theme(legend.position = "none") +
     geom_point() +
     facet_wrap(~chn_colour) +
     scale_y_continuous(minor_breaks=seq(0,5,0.1), breaks=seq(0, 5, 0.5)) +
+    scale_colour_manual(values=STATE_COLOUR$colour, drop=FALSE) +
     labs(x = "Time since NEBD (min)", y="S/N")
 }
 

@@ -257,8 +257,8 @@ tar_read(fig_intensity_sn_NCAPD3_siRNA)
 
 The following figure contains all data combined. It can be used to judge where to make a low S/N cut.
 
-```{r fig_sn_comb, fig.width=8, fig.height=5}
-tar_read(fig_intensity_sn_combined) 
+```{r fig_sn_comb, fig.width=10, fig.height=8}
+tar_read(fig_intensity_sn_combined)  
 ```
 
 
