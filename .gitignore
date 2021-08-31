@@ -9,4 +9,6 @@ man
 doc/report_cache/
 doc/report_files/
 data
+background_pilot
+voxels
 cache

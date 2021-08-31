@@ -10,6 +10,14 @@ my_targets <- function() {
     tar_target(dat_pilot, process_raw_data(raw_pilot) %>% parse_xyz_data(DEFAULT_PARAMS))
   )
   
+  voxels <- list(
+    tar_target(vox_info, get_info("voxels")),
+    tar_target(vox_raw, read_cells(vox_info, CELL_SHEETS, BACKGROUND_SHEETS)),
+    tar_target(vox_dat, process_raw_data(vox_raw) %>% parse_xyz_data(DEFAULT_PARAMS)),
+    tar_target(vox_rat, voxel_ratios(vox_dat)),
+    tar_target(fig_voxel_ratios, plot_voxel_ratios(vox_rat))
+  )
+  
   figures <- list(
     tar_target(fig_colour_ident_cell_1, plot_colour_identification(dat$dotsdat$`TT206-no_siRNA:1_1-1`)),
     tar_target(fig_colour_timeline_cell_1, plot_colour_timeline(dat, "TT206-no_siRNA:1_1-1")),
@@ -45,6 +53,7 @@ my_targets <- function() {
     read_data,
     raw_examples,
     figures,
-    figures_per_condition
+    figures_per_condition,
+    voxels
   ) 
 }

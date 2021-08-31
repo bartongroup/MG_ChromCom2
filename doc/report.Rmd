@@ -49,7 +49,7 @@ Collaborators: Tomo Tanaka, John Eykelenboom
 
 Shiny data explorers
 
- - [state diagnostic](https://shiny.compbio.dundee.ac.uk/private/marek_chromcom2/parsing_states/)
+-   [state diagnostic](https://shiny.compbio.dundee.ac.uk/private/marek_chromcom2/parsing_states/)
 
 #  {.tabset}
 
@@ -96,7 +96,6 @@ For now, we use manual annotation, that is a track with given ID has a colour as
 Intensity in red and green channels can fluctuate and even a green dot can sometimes become a bit red. However, when we have two or more dots, it might be easier to assign colours by comparing them in each frame.
 
 The figure below shows the intensity difference (green - red) for each dot at each time point for cell 1. The letters at the bottom indicate the state (L-light blue, B-dark blue, K-black, W-brown, P-pink, R-red). The digits show the number of points in the XYZ data. Bold font indicates missing points in intensity data.
-
 
 ```{r colour_diff_timeline, fig.width=10, fig.height=4}
 tar_read(fig_colour_timeline_cell_1) 
@@ -195,7 +194,6 @@ tar_read(pl_state_dendrogram_no_siRNA) %>%
   plot(horiz=TRUE, main="no siRNA") 
 ```
 
-
 ## Red-red/green-green angle
 
 Angle distribution between red-red and green-green vectors - only for cases with four dots.
@@ -252,7 +250,6 @@ tar_read(fig_intensity_sn_NCAPD2_siRNA)
 tar_read(fig_intensity_sn_NCAPD3_siRNA) 
 ```
 
-
 ### All data combined
 
 The following figure contains all data combined. It can be used to judge where to make a low S/N cut.
@@ -261,13 +258,11 @@ The following figure contains all data combined. It can be used to judge where t
 tar_read(fig_intensity_sn_combined)  
 ```
 
-
-
 ## Mean, sum intensity and volume
 
-I am trying to understand what the quantities provided in Excel sheets mean. I assume that $Sum$ is the total intensity across the volume $Volume$. The mean intensity should be 
+I am trying to understand what the quantities provided in Excel sheets mean. I assume that $Sum$ is the total intensity across the volume $Volume$. The mean intensity should be
 
-\[Mean = \frac{Sum}{N},\]
+$$Mean = \frac{Sum}{N},$$
 
 where $N$ is the number of pixels. It is tempting to assume that $N$ is directly proportional to $Volume$, but is that so? The figures below show data from dots (left) and extended volume (right). On the horizontal axis is the $Mean$, on the vertical axis is $Sum/Volume$. If our assumptions are correct, we should see a straight line.
 
@@ -290,6 +285,20 @@ tar_read(fig_mean_sum_n)
 ```
 
 Indeed, dividing $Sum$ by $Mean$ returns an integer number, typically around 10, but for the last cell, there is a group of ns between 100 and 1000. I don't think these are pixels, but whatever they are they are definitely whole numbers.
+
+## Voxels and volume
+
+E-mail from John:
+
+*Along these lines I tried to explore how changing volume size of the dot would affect the "fluorescent values" in the sheets. I took 10 points at the beginning of one movie and identified dots in the first 10 frames (define xyz) in my usual way and I took the statistics for this original one ["..with background subtraction (normal diameter).xls]. I then duplicated the objects and manipulated the dot sizes (increased diameters by a factor of 2, decreased by a factor of 5, and used 1x or 2x pixel size dimensions (see above paragraph)) and each time extracted new statistics (note that xyz positions are identical between the sheets). You can see that when the pixel size gets smaller it more frequently fails to return a fluorescence value (though, even in the smallest case where the object is just 0.0010µm3 it still returns values for two objects suggesting it is more than just defining fluorescence values from completely submerged voxels). Maybe you can see how the denominator looks in each of these cases?*
+
+*Finally, I took statistics for the same objects which were defined separately without background subtraction applied. The fluorescent values seem broadly to be the same, so my guess is that there is no correction of the values in the reported sheets -- rather the object is identified using an algorithm that includes (or doesn't) background subtraction and then the statistics report the raw fluorescent values. Note how the xyz positions are slightly different between these two sheets which probably accounts for the minor differences seen.*
+
+I took these data and put them all together in one figure. I normalised all data to the "normal" set with background subtraction. The vertical axis show the ratio in the logarithmic scale.
+
+```{r fig_voxels, fig.width=9, fig.height=9}
+tar_read(fig_voxel_ratios) 
+```
 
 ## Session info
 

@@ -169,13 +169,13 @@ process_dots_raw_data <- function(r, cellid, track_colours, meta, stats) {
 
 #' Process data from all cells (internal function)
 #'
-#' @param raw Raw data object crated by read_cells
+#' @param rw Raw data object crated by read_cells
 #'
 #' @return A named list, one element per cell.
 #' @export
-process_all_dots_raw_data <- function(raw, stats) {
-  cells <- raw$metadata$cell_id
-  map(cells, ~process_dots_raw_data(raw$dots[[.x]], .x, raw$track_colours, raw$metadata, stats)) %>% 
+process_all_dots_raw_data <- function(rw, stats) {
+  cells <- rw$metadata$cell_id
+  map(cells, ~process_dots_raw_data(rw$dots[[.x]], .x, rw$track_colours, rw$metadata, stats)) %>% 
     set_names(cells)
 }
 

@@ -433,3 +433,27 @@ plot_mean_sum_n <- function(di) {
     coord_flip() +
     labs(x="N = Sum/Mean", y=NULL)
 }
+
+
+plot_voxel_ratios <- function(vr) {
+  vr %>% 
+    mutate(
+      select = str_remove(cell_id, "TT206-") %>% str_remove(":.+"),
+      name = str_remove(name, "dots_")
+    ) %>% 
+    filter(select != "normal") %>% 
+  ggplot(aes(x=time_nebd, y=ratio)) +
+    theme_bw() +
+    theme(
+      panel.grid.major = element_line(colour="grey90", size=0.3),
+      panel.grid.minor = element_blank(),
+      panel.grid.major.x = element_blank()
+    ) +
+    geom_hline(yintercept = 1, colour="grey80") +
+    geom_segment(aes(xend=time_nebd, yend=1), colour="grey60") +
+    geom_point() +
+    scale_y_log10(breaks = c(0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, 100)) +
+    scale_x_continuous(breaks = 0:20) +
+    facet_grid(name ~ select) +
+    labs(x="Time (min)", "Ratio to normal")
+}

@@ -26,3 +26,17 @@ get_timepoint_raw_data <- function(rw, xyz, cellid, tim) {
   }) %>% 
     set_names(sheets)
 }
+
+
+voxel_ratios <- function(d, norm_id="TT206-normal:2_2-1") {
+  di <- d$intensities %>% 
+    filter(chn_colour=="green") %>% 
+    select(cell_id, time_nebd, starts_with("dots")) %>% 
+    pivot_longer(-c(cell_id, time_nebd))
+  di_norm <- di %>% 
+    filter(cell_id == norm_id) %>% 
+    select(time_nebd, name, norm=value)
+  di %>%
+    left_join(di_norm, by=c("time_nebd", "name")) %>% 
+    mutate(ratio = value / norm)
+}
