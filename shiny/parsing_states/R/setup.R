@@ -1,6 +1,5 @@
 library(tidyverse)
 
-
 RED_PINK_RULES <- c(
   "(a < D & b < D) | (ang < A & (a < D | b < D))",
   "(a < D & b < D) & ang < A",
@@ -41,7 +40,7 @@ CELL_SHEETS <- c(
   "Position"
 )
 
-BACKGROUND_SHEETS <- c(
+EXTVOL_SHEETS <- c(
   "Intensity Sum Ch=1 Img=1",
   "Intensity Sum Ch=2 Img=1",
   "Intensity Min Ch=1 Img=1",

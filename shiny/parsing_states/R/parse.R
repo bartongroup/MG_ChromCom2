@@ -10,7 +10,7 @@ dist_xyz <- function(m) {
 }
 
 
-#' Title Cosine of angle between two vectors
+#' Cosine of angle between two vectors
 #'
 #' @param x Vector x
 #' @param y Vector y

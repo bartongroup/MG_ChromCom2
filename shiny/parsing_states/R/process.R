@@ -31,6 +31,15 @@ process_times <- function(r, cellid, meta) {
 }
 
 
+#' Process volume table from raw data
+#'
+#' @param r Raw data, one cell from the object created by read_cells.
+#' @param volname Name of the new volume column
+#'
+#' @return Tibble with ID, volume and, if found, track_id
+#' @export
+#'
+#' @examples
 process_volume <- function(r, volname) {
   if(is.null(r$Volume[["TrackID"]])) {
     r$Volume %>% 
@@ -44,11 +53,12 @@ process_volume <- function(r, volname) {
   }
 }
 
-#' Process raw channel colour data
+#' Process raw channel colour data for dots
 #'
 #' @param r Raw data, one cell from the object created by read_cells.
 #' @param stats Vector of statistics for channel intensities, e.g. "Mean" or "Median"
 #' @param intensity_prefix How to prefix column with combined intensities.
+#' @param track_colour Table with colour per track
 #'
 #' @return
 #' @export
@@ -81,6 +91,17 @@ process_dots_intensities <- function(r, stats, intensity_prefix, track_colour) {
 }
 
 
+#' Process raw channel colour data for extended volume
+#'
+#' @param r Raw data, one cell from the object created by read_cells.
+#' @param stats Vector of statistics for channel intensities, e.g. "Mean" or "Median"
+#' @param intensity_prefix How to prefix column with combined intensities.
+#' @param track_colour Table with colour per track
+#'
+#' @return
+#' @export
+#'
+#' @examples
 process_extvol_intensities <- function(r, stats, intensity_prefix, track_colour) {
   map_dfr(stats, function(stat) {
     ch1 <- r[[glue("Intensity {stat} Ch=1 Img=1")]] %>% 

@@ -2,17 +2,17 @@ my_targets <- function() {
   
   read_data <- list(
     tar_target(info, get_info("data")),
-    tar_target(raw, read_cells(info, CELL_SHEETS, BACKGROUND_SHEETS)),
+    tar_target(raw, read_cells(info, CELL_SHEETS, EXTVOL_SHEETS)),
     tar_target(dat, process_raw_data(raw) %>% parse_xyz_data(DEFAULT_PARAMS)),
     
     tar_target(info_pilot, get_info("background_pilot")),
-    tar_target(raw_pilot, read_cells(info_pilot, CELL_SHEETS, BACKGROUND_SHEETS)),
+    tar_target(raw_pilot, read_cells(info_pilot, CELL_SHEETS, EXTVOL_SHEETS)),
     tar_target(dat_pilot, process_raw_data(raw_pilot) %>% parse_xyz_data(DEFAULT_PARAMS))
   )
   
   voxels <- list(
     tar_target(vox_info, get_info("voxels")),
-    tar_target(vox_raw, read_cells(vox_info, CELL_SHEETS, BACKGROUND_SHEETS)),
+    tar_target(vox_raw, read_cells(vox_info, CELL_SHEETS, EXTVOL_SHEETS)),
     tar_target(vox_dat, process_raw_data(vox_raw) %>% parse_xyz_data(DEFAULT_PARAMS)),
     tar_target(vox_rat, voxel_ratios(vox_dat)),
     tar_target(fig_voxel_ratios, plot_voxel_ratios(vox_rat))
