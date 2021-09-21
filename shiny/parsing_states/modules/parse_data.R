@@ -52,8 +52,7 @@ mod_parse_data <- function(id, state) {
         incProgress(1/4)
         write_rds(dat, cache_file)
         incProgress(1/4)
-        pars <- DEFAULT_PARAMS
-        updateSelectInput(session, "cellcon", choices=pars$cellcons)
+        updateSelectInput(session, "cellcon", choices=levels(dat$metadata$cellcon))
       })
     })
     
