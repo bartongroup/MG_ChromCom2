@@ -181,13 +181,13 @@ pl_proportion_map <- function(dp, k=5, params) {
 plot_dots <- function(xyz) {
   pl <- xyz %>% 
     plot_ly() %>%
-    add_trace(type="scatter3d", mode="markers", x = ~x, y = ~y, z = ~z, marker=list(color = ~colour), showlegend=FALSE) %>% 
+    add_trace(type="scatter3d", mode="markers", x = ~x, y = ~y, z = ~z, marker=list(color = ~dot_colour), showlegend=FALSE) %>% 
     layout(font=list(size=9), scene=list(aspectmode="data"))
-  xyz_red <- xyz %>% filter(colour == "red")
+  xyz_red <- xyz %>% filter(dot_colour == "red")
   if(nrow(xyz_red) > 0) {
     pl <- add_paths(pl, x = ~x, y = ~y, z = ~z, data=xyz_red, color = I("red"), showlegend=FALSE)
   }
-  xyz_green <- xyz %>% filter(colour == "green")
+  xyz_green <- xyz %>% filter(dot_colour == "green")
   if(nrow(xyz_green) > 0) {
     pl <- add_paths(pl, x = ~x, y = ~y, z = ~z, data=xyz_green, color = I("green"), showlegend=FALSE)
   }
