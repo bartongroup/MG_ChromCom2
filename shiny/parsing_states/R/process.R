@@ -15,15 +15,10 @@ process_times <- function(r, cellid, meta) {
   mt <- meta %>% filter(cell_id == cellid) 
   nebd_frame <- mt %>% pull(nebd_frame)
   
-  if(!(nebd_frame %in% times$frame)) {
-    stop(paste("NEBD frame", nebd_frame, "not found in", mt$name))
-  }
-  
-  nebd_time <- times %>% 
-    filter(frame == nebd_frame) %>% 
-    select(time) %>% 
-    distinct() %>% 
-    pull(time)
+  # interpolate/extrapolate NEBD time
+  f <- lm(formula = time ~ frame, data = times)
+  nebd_time <- predict(f, tibble(frame = nebd_frame)) %>% 
+    as.numeric()
   
   times <- times %>% 
     mutate(time_nebd = as.integer(round(time - nebd_time))) %>% 
