@@ -7,7 +7,7 @@ options(dplyr.summarise.inform = FALSE)
 
 
 # for interactive session only
-# sapply(packages, library, character.only=TRUE)
+if(interactive()) sapply(packages, library, character.only=TRUE)
 
 files_R <- list.files("R", pattern="*.R$", full.names=TRUE)
 sr_ <- sapply(files_R, source)

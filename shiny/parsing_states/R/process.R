@@ -12,7 +12,12 @@ process_times <- function(r, cellid, meta) {
     set_names("time", "unit", "cat", "frame", "track_id", "id") %>% 
     mutate(time = time / 60, unit="min", track_id = as.character(as.integer(track_id)), frame = as.integer(frame))
   
-  nebd_frame <- meta %>% filter(cell_id == cellid) %>% pull(nebd_frame)
+  mt <- meta %>% filter(cell_id == cellid) 
+  nebd_frame <- mt %>% pull(nebd_frame)
+  
+  if(!(nebd_frame %in% times$frame)) {
+    stop(paste("NEBD frame", nebd_frame, "not found in", mt$name))
+  }
   
   nebd_time <- times %>% 
     filter(frame == nebd_frame) %>% 
