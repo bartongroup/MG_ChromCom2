@@ -47,7 +47,7 @@ parse_one_state <- function(ds, params) {
   angle_ab <- as.numeric(NA)
   angle_rg <- as.numeric(NA)
 
-  if(n_dots == 1) {
+  if(n_dots == 1 | n_dots > 4) {
     a <- 0
     b <- 0
     r <- 0
