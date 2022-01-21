@@ -10,17 +10,6 @@ dist_xyz <- function(m) {
 }
 
 
-#' Cosine of angle between two vectors
-#'
-#' @param x Vector x
-#' @param y Vector y
-#'
-#' @return Cos angle between x and y
-#' @export
-cos_angle <- function(x, y){
-  as.numeric(x %*% y) / (norm(x, type="2") * norm(y, type="2"))
-}
-
 #' Angle between two pairs of dots: red vs green
 #'
 #' @param m Matrix with four rows and three columns containing x, y, z co-oridnates of four points.
@@ -30,7 +19,8 @@ cos_angle <- function(x, y){
 angle_xyz <- function(m) {
   v1 <- m[2, ] - m[1, ]
   v2 <- m[4, ] - m[3, ]
-  mu <- cos_angle(v1, v2)
+  # cos angle
+  mu <- as.numeric(v1 %*% v2) / (sqrt(sum(v1^2)) * sqrt(sum(v2^2)))
   acos(abs(mu))
 }
 
