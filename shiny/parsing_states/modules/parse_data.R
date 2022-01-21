@@ -9,6 +9,8 @@ mod_parse_data_ui <- function(id) {
   tagList(
     actionButton(ns("reload"), "Reload data"),
     hr(),
+    sliderInput(ns("dist.black_lightblue"), "Black/blue limit", value=DEFAULT_PARAMS$dist.black_lightblue, min=0, max=5, step=0.05, ticks=FALSE),
+    sliderInput(ns("black.length"), "Black length", value=DEFAULT_PARAMS$black.length, min=0, max=20, step=1, ticks=FALSE),
     sliderInput(ns("dist.darkblue_brown"), "Blue/brown limit", value=DEFAULT_PARAMS$dist.darkblue_brown, min=0, max=5, step=0.05, ticks=FALSE),
     sliderInput(ns("dist.brown_redpink"), "Brown/red-pink limit", value=DEFAULT_PARAMS$dist.brown_redpink, min=0, max=1, step=0.05, ticks=FALSE),
     sliderInput(ns("dist.red_pink"), "Red/pink limit (D)", value=DEFAULT_PARAMS$dist.red_pink, min=0, max=5, step=0.05, ticks=FALSE),
@@ -27,13 +29,11 @@ mod_parse_data <- function(id, state) {
     # The plot will be updated only on "sumbit"
     params_from_input <- function() {
       isolate(list(
-        #dist.black_lightblue = input$dist_lightblue,
-        dist.black_lightblue = 0,
+        dist.black_lightblue = input$dist.black_lightblue,
         dist.darkblue_brown = input$dist.darkblue_brown,
         dist.brown_redpink = input$dist.brown_redpink,
         dist.red_pink = input$dist.red_pink,
-        #black.length = input$black.length,
-        black.length = 0,
+        black.length = input$black.length,
         angle.red_pink = input$angle.red_pink,
         #merge.blue = input$merge.blue,
         merge.blue = TRUE,
