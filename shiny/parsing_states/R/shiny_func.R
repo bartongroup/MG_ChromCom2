@@ -121,8 +121,7 @@ pl_all_distance_timeline <- function(dp, params) {
 make_state_map <- function(dp, params) {
   dp %>% 
     merge_blue_(params) %>% 
-    unite(local_id, c(movie, cell)) %>% 
-    mutate(x = time_nebd, y = as_factor(local_id) %>% fct_rev())
+    mutate(x = time_nebd, y = as_factor(mcell) %>% fct_rev())
 }
 
 pl_state_map <- function(dp, params) {

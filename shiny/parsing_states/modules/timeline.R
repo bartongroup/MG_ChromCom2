@@ -7,7 +7,7 @@ mod_timeline_ui <- function(id) {
   ns <- NS(id)
   
   tagList(
-    selectInput(ns("mcell"), "Movie/cell no.", choices=initial_cells$mcells),
+    selectInput(ns("mcell"), "Day/movie/cell no.", choices=initial_cells$mcells),
     plotOutput(ns("timeline"), height="500px") %>%
       withSpinner(color="#0dc5c1", type=5, size=0.5)
   )

@@ -18,28 +18,30 @@ get_info <- function(path) {
   }
   
   meta <- map_dfr(files, function(fn) {
-    fpath <- dirname(fn)
     r <- readxl::read_excel(fn,
       sheet = "metadata",
       col_names = c("name", "nebd_frame", "cell_line", "condition", "movie", "cell", "date"),
       col_types = c("text", "numeric", "text", "text", "text", "numeric", "date"),
-      skip = 1
-    )
-    r %>% mutate(
-        nebd_frame = as.integer(nebd_frame),
-        cell_line = str_replace_all(cell_line, " ", "_"),
-        condition = str_replace_all(condition, " ", "_")
-      ) %>% 
-      unite(cellcon, c(cell_line, condition), sep="-", remove=FALSE) %>% 
-      unite(mcell, c(movie, cell), sep="-", remove=FALSE) %>% 
-      unite(cell_id, c(cellcon, mcell), remove=FALSE, sep=":") %>% 
-      mutate(
-        cell_file = file.path(fpath, glue("{name}.xls")),
-        background_file = file.path(fpath, glue("{name}_extendedvol.xls")),
-        info_file = fn
-      ) %>% 
-      mutate(date = as.Date(date))
+      skip = 1,
+      progress = FALSE
+    ) %>% 
+      mutate(path = dirname(fn), info_file = fn)
   }) %>% 
+    mutate(
+      nebd_frame = as.integer(nebd_frame),
+      cell_line = str_replace_all(cell_line, " ", "_"),
+      condition = str_replace_all(condition, " ", "_"),
+      date = as.Date(date)
+   ) %>%
+    arrange(date) %>% 
+    mutate(day = date %>% as.character() %>% as_factor() %>% as.integer() %>% sprintf("%02d", .)) %>% 
+    unite(cellcon, c(cell_line, condition), sep="-", remove=FALSE) %>% 
+    unite(mcell, c(day, movie, cell), sep="-", remove=FALSE) %>% 
+    unite(cell_id, c(cellcon, mcell), remove=FALSE, sep=":") %>% 
+    mutate(
+      cell_file = file.path(path, glue("{name}.xls")),
+      background_file = file.path(path, glue("{name}_extendedvol.xls"))
+    ) %>% 
     mutate_at(vars(name, cell_line, condition, cellcon, movie, mcell), as_factor)
     
   trcol <- map_dfr(meta$info_file, ~readxl::read_excel(.x, sheet="trackid")) %>%

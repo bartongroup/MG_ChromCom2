@@ -189,3 +189,6 @@ parse_states <- function(xyz, params) {
     parse_black(params)
 }
 
+# Note. 21/01/2022 did benchmarking of group_split(cell_id, frame) vs
+# group_by(cell_id, frame) %>% nest(), and nest is much slower in mapping.
+# Keeping group_split.

@@ -1,1 +1,1 @@
-scp -r shiny/* rstudio:/homes/gjb-shiny-x/shiny/private/marek_chromcom2
+rsync -rvm shiny/* rstudio:/homes/gjb-shiny-x/shiny/private/marek_chromcom2
