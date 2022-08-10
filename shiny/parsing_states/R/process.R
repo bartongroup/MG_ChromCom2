@@ -10,7 +10,7 @@
 process_times <- function(r, cellid, meta) {
   times <- r$Time %>%
     set_names("time", "unit", "cat", "frame", "track_id", "id") %>% 
-    mutate(time = time / 60, unit="min", track_id = as.character(as.integer(track_id)), frame = as.integer(frame))
+    mutate(time = time / 60, unit = "min", track_id = as.character(as.integer(track_id)), frame = as.integer(frame))
   
   mt <- meta %>% filter(cell_id == cellid) 
   nebd_frame <- mt %>% pull(nebd_frame)
@@ -41,7 +41,7 @@ process_times <- function(r, cellid, meta) {
 #'
 #' @examples
 process_volume <- function(r, volname) {
-  if(is.null(r$Volume[["TrackID"]])) {
+  if (is.null(r$Volume[["TrackID"]])) {
     r$Volume %>% 
       select(ID, Volume) %>% 
       set_names(c("id", volname))
@@ -66,7 +66,7 @@ process_volume <- function(r, volname) {
 #' @examples
 process_dots_intensities <- function(r, stats, intensity_prefix, track_colour) {
   map_dfr(stats, function(stat) {
-    ch1 <- r[[glue("Intensity {stat} Ch=1 Img=1")]] %>% 
+    ch1 <- r[[glue("Intensity {stat} Ch = 1 Img = 1")]] %>% 
       select(
         red = glue("Intensity {stat}"),
         track_id = TrackID,
@@ -74,20 +74,20 @@ process_dots_intensities <- function(r, stats, intensity_prefix, track_colour) {
       ) %>% 
       mutate(track_id = as.character(as.integer(track_id))) 
     
-    ch2 <- r[[glue("Intensity {stat} Ch=2 Img=1")]] %>% 
+    ch2 <- r[[glue("Intensity {stat} Ch = 2 Img = 1")]] %>% 
       select(
         green = glue("Intensity {stat}"),
         id = ID
       ) 
     
-    full_join(ch1, ch2, by="id") %>%
+    full_join(ch1, ch2, by = "id") %>%
       select(id, track_id, red, green) %>% 
-      pivot_longer(-c(id, track_id), names_to="chn_colour", values_to="intensity") %>% 
-      add_column(what = paste(intensity_prefix, tolower(stat), sep="_"))
+      pivot_longer(-c(id, track_id), names_to = "chn_colour", values_to = "intensity") %>% 
+      add_column(what = paste(intensity_prefix, tolower(stat), sep = "_"))
   }) %>% 
-    pivot_wider(id_cols=c(id, track_id, chn_colour), values_from=intensity, names_from=what) %>% 
-    left_join(track_colour, by="track_id") %>% 
-    relocate(dot_colour, .after="track_id")
+    pivot_wider(id_cols = c(id, track_id, chn_colour), values_from = intensity, names_from = what) %>% 
+    left_join(track_colour, by = "track_id") %>% 
+    relocate(dot_colour, .after = "track_id")
 }
 
 
@@ -104,26 +104,26 @@ process_dots_intensities <- function(r, stats, intensity_prefix, track_colour) {
 #' @examples
 process_extvol_intensities <- function(r, stats, intensity_prefix, track_colour) {
   map_dfr(stats, function(stat) {
-    ch1 <- r[[glue("Intensity {stat} Ch=1 Img=1")]] %>% 
+    ch1 <- r[[glue("Intensity {stat} Ch = 1 Img = 1")]] %>% 
       select(
         red = glue("Intensity {stat}"),
         time = Time,
         id = ID
       ) 
     
-    ch2 <- r[[glue("Intensity {stat} Ch=2 Img=1")]] %>% 
+    ch2 <- r[[glue("Intensity {stat} Ch = 2 Img = 1")]] %>% 
       select(
         green = glue("Intensity {stat}"),
         id = ID
       )
     
-    full_join(ch1, ch2, by="id") %>%
+    full_join(ch1, ch2, by = "id") %>%
       select(id, red, green) %>% 
-      pivot_longer(-id, names_to="chn_colour", values_to="intensity") %>% 
-      add_column(what = paste(intensity_prefix, tolower(stat), sep="_"))
+      pivot_longer(-id, names_to = "chn_colour", values_to = "intensity") %>% 
+      add_column(what = paste(intensity_prefix, tolower(stat), sep = "_"))
   }) %>% 
     distinct() %>% 
-    pivot_wider(id_cols=c(id, chn_colour), values_from=intensity, names_from=what)
+    pivot_wider(id_cols = c(id, chn_colour), values_from = intensity, names_from = what)
 }
 
 
@@ -149,8 +149,8 @@ process_dots_raw_data <- function(r, cellid, track_colours, meta, stats) {
   volumes <- process_volume(r, "dots_volume")
   time_track <- process_times(r, cellid, meta)
   intensities <- process_dots_intensities(r, stats, "dots", track_colour) %>% 
-    left_join(time_track$times %>%  select(id, frame, time_nebd), by="id") %>% 
-    left_join(volumes, by=c("id", "track_id"))
+    left_join(time_track$times %>%  select(id, frame, time_nebd), by = "id") %>% 
+    left_join(volumes, by = c("id", "track_id"))
   
   pos <- r$Position %>% 
     select(
@@ -169,8 +169,8 @@ process_dots_raw_data <- function(r, cellid, track_colours, meta, stats) {
     group_by(frame, track_id) %>% 
     mutate(n_colour = n()) %>% 
     ungroup() %>% 
-    left_join(select(time_track$times, time, time_nebd, id), by="id") %>% 
-    left_join(track_colour, by="track_id")
+    left_join(select(time_track$times, time, time_nebd, id), by = "id") %>% 
+    left_join(track_colour, by = "track_id")
 
   this_meta <- meta %>% filter(cell_id == cellid) 
   
@@ -213,7 +213,7 @@ process_all_dots_raw_data <- function(rw, stats) {
 #' @export
 process_extvol_raw_data <- function(r, cellid, meta, stats) {
   
-  if(is.null(r)) {
+  if (is.null(r)) {
     extvol <- tibble(
       frame = numeric(),
       chn_colour = character(),
@@ -224,7 +224,7 @@ process_extvol_raw_data <- function(r, cellid, meta, stats) {
     
     times <- r$Time %>%
       set_names("time", "unit", "cat", "frame", "id") %>% 
-      mutate(time = time / 60, unit="min", frame = as.integer(frame))
+      mutate(time = time / 60, unit = "min", frame = as.integer(frame))
     
     frame_time <- times %>% 
       select(frame, time) %>% 
@@ -233,13 +233,13 @@ process_extvol_raw_data <- function(r, cellid, meta, stats) {
     volumes <- process_volume(r, "extvol_volume")
     
     extvol <- process_extvol_intensities(r, stats, "extvol", track_colour) %>% 
-      left_join(select(times, id, frame), by="id") %>% 
-      left_join(volumes, by="id") %>% 
+      left_join(select(times, id, frame), by = "id") %>% 
+      left_join(volumes, by = "id") %>% 
       pivot_longer(-c(id, frame, chn_colour)) %>% 
       group_by(frame, chn_colour, name) %>% 
       summarise(value = mean(value)) %>% 
       pivot_wider(id_cols = c(frame, chn_colour)) %>% 
-      left_join(frame_time, by="frame")
+      left_join(frame_time, by = "frame")
   }
     
   list(
@@ -268,10 +268,10 @@ process_all_extvol_raw_data <- function(rw, stats) {
 #'
 #' @return Tibble
 #' @export
-merge_cell_data <- function(d, what="dat") {
+merge_cell_data <- function(d, what = "dat") {
   map_dfr(names(d), function(cellid) {
     d[[cellid]][[what]] %>% 
-      mutate(cell_id = cellid, .before=1)
+      mutate(cell_id = cellid, .before = 1)
   })
 }
 
@@ -296,16 +296,16 @@ merge_cell_data <- function(d, what="dat") {
 #' dat = process_raw_data(raw) %>% parse_xyz_data(params)
 #' 
 process_raw_data <- function(rw, z_correction = 0.85,
-                             dots_stats=c("Sum", "Max", "Mean"),
-                             extvol_stats=c("Sum", "Mean", "Min")) {
+                             dots_stats = c("Sum", "Max", "Mean"),
+                             extvol_stats = c("Sum", "Mean", "Min")) {
   md <- rw$metadata %>% select(cell_id, cell_line, condition, movie, cell, cellcon, mcell)
   
   dotsdat <- process_all_dots_raw_data(rw, dots_stats)
   xyz <- merge_cell_data(dotsdat) %>%
-    left_join(md, by="cell_id") %>%
+    left_join(md, by = "cell_id") %>%
     mutate(
       z = z * z_correction,
-      dot_colour = factor(dot_colour, levels=c("green", "red"))
+      dot_colour = factor(dot_colour, levels = c("green", "red"))
     )
   ints_dots <- merge_cell_data(dotsdat, "intensities") %>% 
     select(-c(id, track_id)) %>% 
@@ -315,7 +315,7 @@ process_raw_data <- function(rw, z_correction = 0.85,
     merge_cell_data("extvol")
   
   intensities <- ints_dots %>% 
-    left_join(ints_extvol, by=c("cell_id", "frame", "chn_colour")) %>% 
+    left_join(ints_extvol, by = c("cell_id", "frame", "chn_colour")) %>% 
     select(cell_id, frame, time, time_nebd, dot_colour, chn_colour, starts_with("dots"), starts_with("extvol"))
   
   list(
@@ -344,7 +344,7 @@ parse_xyz_data <- function(d, params) {
   md <- d$metadata %>%
     select(cell_id, cell_line, condition, movie, cell, cellcon, mcell)
   parsed <- parse_states(d$xyz, params) %>%
-    left_join(md, by="cell_id")
+    left_join(md, by = "cell_id")
   d$parsed <- parsed
   d$params <- params
   d

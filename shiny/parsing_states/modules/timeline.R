@@ -7,9 +7,9 @@ mod_timeline_ui <- function(id) {
   ns <- NS(id)
   
   tagList(
-    selectInput(ns("mcell"), "Day/movie/cell no.", choices=initial_cells$mcells),
-    plotOutput(ns("timeline"), height="500px") %>%
-      withSpinner(color="#0dc5c1", type=5, size=0.5)
+    selectInput(ns("mcell"), "Day/movie/cell no.", choices = initial_cells$mcells),
+    plotOutput(ns("timeline"), height = "500px") %>%
+      withSpinner(color = "#0dc5c1", type = 5, size = 0.5)
   )
 }
 
@@ -25,7 +25,7 @@ mod_timeline <- function(id, state) {
       mcells <- state$data$metadata %>% 
         filter(cellcon == state$cellcon) %>% 
         pull(mcell)
-      updateSelectInput(session, "mcell", choices=mcells)
+      updateSelectInput(session, "mcell", choices = mcells)
     })
     
     output$timeline <- renderPlot({
@@ -39,7 +39,7 @@ mod_timeline <- function(id, state) {
       plot_grid(
         pl_state_distance_timeline(dp, d$params),
         pl_all_distance_timeline(dp, d$params),
-        ncol=1, align="v"
+        ncol = 1, align = "v"
       )
     })
     

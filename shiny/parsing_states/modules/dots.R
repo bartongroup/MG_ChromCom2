@@ -6,8 +6,8 @@ mod_dots_ui <- function(id) {
   ns <- NS(id)
   
   tagList(
-    plotOutput(ns("cell_map"), height="300px", click=ns("cell_time_click")),
-    plotlyOutput(ns("dot_plot"), height="400px", width="400px"),
+    plotOutput(ns("cell_map"), height = "300px", click = ns("cell_time_click")),
+    plotlyOutput(ns("dot_plot"), height = "400px", width = "400px"),
     tableOutput(ns("dot_info"))
   )
 }
@@ -31,7 +31,7 @@ mod_dots <- function(id, state) {
       d <- state$data
       con <- state$cellcon
       mp <- d$parsed %>% filter(cellcon == con) %>% make_state_map(d$params)
-      nearPoints(mp, input$cell_time_click, xvar="x", yvar="y", maxpoints=1, threshold=5)
+      nearPoints(mp, input$cell_time_click, xvar = "x", yvar = "y", maxpoints = 1, threshold = 5)
     })
     
     output$dot_plot <- renderPlotly({

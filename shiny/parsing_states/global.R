@@ -1,7 +1,7 @@
 # set libpath for our Shiny server
 
 libDir <- "/cluster/gjb_lab/mgierlinski/R_shiny/library/4.1"
-if(dir.exists(libDir)) .libPaths(libDir)
+if (dir.exists(libDir)) .libPaths(libDir)
 
 library(shiny)
 library(shinycssloaders)
@@ -37,15 +37,15 @@ dirs <- c(
   "/Users/mgierlinski/Projects/ChromCom2/data"
 )
 data_path <- NULL
-for(d in dirs) if(dir.exists(d)) data_path <- d
+for (d in dirs) if (dir.exists(d)) data_path <- d
 
 # Cache file to store processed Excel sheets
 
 cache_path <- "cache"
 cache_file <- file.path(cache_path, "data.rds")
 
-if(!dir.exists(cache_path)) dir.create(cache_path)
-if(!file.exists(cache_file)) {
+if (!dir.exists(cache_path)) dir.create(cache_path)
+if (!file.exists(cache_file)) {
   reload_data(data_path, CELL_SHEETS, cache_file)
 }
 

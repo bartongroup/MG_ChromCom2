@@ -2,6 +2,11 @@
 
 server <- function(input, output, session) {
   
+  # Prevents RStudio from crashing when Shiny window closed manually
+  session$onSessionEnded(function() {
+    stopApp()
+  })
+  
   # Initialise app state
   app_state <- reactiveValues(
     data = NULL,

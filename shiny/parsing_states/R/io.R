@@ -12,9 +12,9 @@ get_info <- function(path) {
   files <- list.files(path, pattern = "*info.xlsx", full.names = TRUE, recursive = TRUE)
   
   # Check if sheets OK
-  for(fn in files) {
+  for (fn in files) {
     sh <- readxl::excel_sheets(fn)
-    if(!(sh[1] == "metadata" & sh[2] == "trackid")) stop(glue("Sheets in {fn} should be 'metadata' and 'trackid'."))
+    if (!(sh[1] == "metadata" & sh[2] == "trackid")) stop(glue("Sheets in {fn} should be 'metadata' and 'trackid'."))
   }
   
   meta <- map_dfr(files, function(fn) {
@@ -35,28 +35,28 @@ get_info <- function(path) {
    ) %>%
     arrange(date) %>% 
     mutate(day = date %>% as.character() %>% as_factor() %>% as.integer() %>% sprintf("%02d", .)) %>% 
-    unite(cellcon, c(cell_line, condition), sep="-", remove=FALSE) %>% 
-    unite(mcell, c(day, movie, cell), sep="-", remove=FALSE) %>% 
-    unite(cell_id, c(cellcon, mcell), remove=FALSE, sep=":") %>% 
+    unite(cellcon, c(cell_line, condition), sep = "-", remove = FALSE) %>% 
+    unite(mcell, c(day, movie, cell), sep = "-", remove = FALSE) %>% 
+    unite(cell_id, c(cellcon, mcell), remove = FALSE, sep = ":") %>% 
     mutate(
       cell_file = file.path(path, glue("{name}.xls")),
       background_file = file.path(path, glue("{name}_extendedvol.xls"))
     ) %>% 
     mutate_at(vars(name, cell_line, condition, cellcon, movie, mcell), as_factor)
     
-  trcol <- map_dfr(meta$info_file, ~readxl::read_excel(.x, sheet="trackid")) %>%
+  trcol <- map_dfr(meta$info_file, ~readxl::read_excel(.x, sheet = "trackid")) %>%
     set_names(c("name", "track_id", "dot_colour")) %>%
     mutate(track_id = as.character(as.integer(track_id))) %>% 
-    left_join(select(meta, name, cell_id), by="name")
+    left_join(select(meta, name, cell_id), by = "name")
   
   # check for duplicates
   dm <- meta %>% add_count(cell_id) %>% filter(n > 1)
-  if(nrow(dm) > 0) {
+  if (nrow(dm) > 0) {
     print(dm)
     stop("Duplicates detected")
   }
   tm <- trcol %>% add_count(cell_id, track_id) %>% filter(n > 1)
-  if(nrow(tm) > 0) {
+  if (nrow(tm) > 0) {
     print(tm)
     stop("Duplicated trackID detected")
   }
@@ -78,13 +78,13 @@ get_info <- function(path) {
 #'
 #' @return A named list with sheets.
 #' @export
-read_excel_cell <- function(excel_file, sheets=NULL, verbose=TRUE) {
-  if(!file.exists(excel_file)) return(NULL)
-  if(verbose) cat(glue("\nReading {excel_file}\n\n"))
-  if(is.null(sheets)){
+read_excel_cell <- function(excel_file, sheets = NULL, verbose = TRUE) {
+  if (!file.exists(excel_file)) return(NULL)
+  if (verbose) cat(glue("\nReading {excel_file}\n\n"))
+  if (is.null(sheets)) {
     sheets <- excel_sheets(path.expand(excel_file))  # there is a bug in readxl that doesn't take relative paths
   }
-  map(sheets, ~readxl::read_excel(path.expand(excel_file), .x, skip=1)) %>% set_names(sheets)
+  map(sheets, ~readxl::read_excel(path.expand(excel_file), .x, skip = 1)) %>% set_names(sheets)
 }
 
 
@@ -100,9 +100,9 @@ test_for_files <- function(meta) {
   m <- meta %>% 
     select(cell_file, info_file) %>% 
     pivot_longer(cols = everything(), names_to = "type", values_to = "file_name")
-  for(i in 1:nrow(m)) {
+  for (i in 1:nrow(m)) {
     r <- m[i, ]
-    if(!file.exists(r$file_name)) {
+    if (!file.exists(r$file_name)) {
       stop(glue("File {r$file_name} not found."))
     }
   }
