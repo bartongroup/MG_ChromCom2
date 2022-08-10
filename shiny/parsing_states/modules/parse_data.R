@@ -44,13 +44,13 @@ mod_parse_data <- function(id, state) {
     # React to "reload" button by loading and processing all Excel files
     observeEvent(input$reload, {
       withProgress(message = "Loading Excel files", {
-        info <- get_info(data_path)
+        info <- get_info(DATA_PATH)
         incProgress(1/4)
-        dat <- read_cells(info, CELL_SHEETS)
+        dat <- read_cells(info, CELL_SHEETS, EXTVOL_SHEETS)
         incProgress(1/4)
         dat <- process_raw_data(dat)
         incProgress(1/4)
-        write_rds(dat, cache_file)
+        write_rds(dat, CACHE_FILE)
         incProgress(1/4)
         updateSelectInput(session, "cellcon", choices = levels(dat$metadata$cellcon))
       })
@@ -58,9 +58,9 @@ mod_parse_data <- function(id, state) {
     
     # On "submit" parse and return parsed data
     observeEvent(input$submit, {
-      req(file.exists(cache_file))
+      req(file.exists(CACHE_FILE))
       params <- params_from_input()
-      dat <- read_rds(cache_file) %>% 
+      dat <- read_rds(CACHE_FILE) %>% 
         parse_xyz_data(params)
       state$data <- dat
       state$is_parsed <- TRUE

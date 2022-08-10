@@ -36,24 +36,22 @@ dirs <- c(
   "/cluster/gjb_lab/mgierlinski/projects/chromcom2/data",
   "/Users/mgierlinski/Projects/ChromCom2/data"
 )
-data_path <- NULL
-for (d in dirs) if (dir.exists(d)) data_path <- d
+DATA_PATH <- NULL
+for (d in dirs) if (dir.exists(d)) DATA_PATH <- d
 
 # Cache file to store processed Excel sheets
 
 cache_path <- "cache"
-cache_file <- file.path(cache_path, "data.rds")
+CACHE_FILE <- file.path(cache_path, "data.rds")
 
 if (!dir.exists(cache_path)) dir.create(cache_path)
-if (!file.exists(cache_file)) {
-  reload_data(data_path, CELL_SHEETS, cache_file)
+if (!file.exists(CACHE_FILE)) {
+  reload_data(DATA_PATH, CELL_SHEETS, EXTVOL_SHEETS, CACHE_FILE)
 }
 
 # Initial parameters for selectInput
 
-initial_dat <- read_rds(cache_file)
+initial_dat <- read_rds(CACHE_FILE)
 initial_cells <- initial_cellcons(initial_dat$metadata)
-min_time <- min(initial_dat$xyz$time_nebd)
-max_time <- max(initial_dat$xyz$time_nebd)
 
 

@@ -66,7 +66,7 @@ process_volume <- function(r, volname) {
 #' @examples
 process_dots_intensities <- function(r, stats, intensity_prefix, track_colour) {
   map_dfr(stats, function(stat) {
-    ch1 <- r[[glue("Intensity {stat} Ch = 1 Img = 1")]] %>% 
+    ch1 <- r[[glue("Intensity {stat} Ch=1 Img=1")]] %>% 
       select(
         red = glue("Intensity {stat}"),
         track_id = TrackID,
@@ -74,7 +74,7 @@ process_dots_intensities <- function(r, stats, intensity_prefix, track_colour) {
       ) %>% 
       mutate(track_id = as.character(as.integer(track_id))) 
     
-    ch2 <- r[[glue("Intensity {stat} Ch = 2 Img = 1")]] %>% 
+    ch2 <- r[[glue("Intensity {stat} Ch=2 Img=1")]] %>% 
       select(
         green = glue("Intensity {stat}"),
         id = ID
@@ -104,14 +104,14 @@ process_dots_intensities <- function(r, stats, intensity_prefix, track_colour) {
 #' @examples
 process_extvol_intensities <- function(r, stats, intensity_prefix, track_colour) {
   map_dfr(stats, function(stat) {
-    ch1 <- r[[glue("Intensity {stat} Ch = 1 Img = 1")]] %>% 
+    ch1 <- r[[glue("Intensity {stat} Ch=1 Img=1")]] %>% 
       select(
         red = glue("Intensity {stat}"),
         time = Time,
         id = ID
       ) 
     
-    ch2 <- r[[glue("Intensity {stat} Ch = 2 Img = 1")]] %>% 
+    ch2 <- r[[glue("Intensity {stat} Ch=2 Img=1")]] %>% 
       select(
         green = glue("Intensity {stat}"),
         id = ID
