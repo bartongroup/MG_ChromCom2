@@ -15,9 +15,9 @@ initial_cellcons <- function(meta) {
 
 # Reads Excel files from the folder "data.path", does initial processing of raw
 # data and saves the result in the cache file. Does not return anything useful.
-reload_data <- function(data.path, CELL_SHEETS, cache.file) {
+reload_data <- function(data.path, sheets, extvol_sheets, cache.file) {
   info <- get_info(data.path)
-  dat <- read_cells(info, CELL_SHEETS) %>% 
+  dat <- read_cells(info, sheets, extvol_sheets) %>% 
     process_raw_data()
   write_rds(dat, cache.file)
 }
@@ -41,8 +41,8 @@ make_state_limit_tb_ <- function(params) {
 compact_distances_ <- function(dp) {
   dp %>% 
     mutate(
-      dist_1 = if_else(n_dot = =2, dist_a, if_else(n_dot = =3, if_else(dist_r > dist_g, dist_r, dist_g), dist_a)),
-      dist_2 = if_else(n_dot = =4, dist_b, as.numeric(NA))
+      dist_1 = if_else(n_dot == 2, dist_a, if_else(n_dot == 3, if_else(dist_r > dist_g, dist_r, dist_g), dist_a)),
+      dist_2 = if_else(n_dot == 4, dist_b, as.numeric(NA))
     )
 }
 
@@ -152,15 +152,19 @@ make_proportion_map <- function(dp, k, params) {
     group_by(time_nebd, state) %>%
     tally() %>% 
     ungroup() %>% 
-    group_by(time_nebd) %>% 
-    mutate(prop = n / sum(n)) %>% 
-    ungroup() %>% 
     # a trick to fill missing data with zeroes
-    pivot_wider(id_cols = time_nebd, names_from = state, values_from = prop, values_fill = list(prop = 0)) %>%
-    pivot_longer(-time_nebd, names_to = "state", values_to = "prop") %>% 
+    pivot_wider(id_cols = time_nebd, names_from = state, values_from = n, values_fill = list(n = 0)) %>%
+    pivot_longer(-time_nebd, names_to = "state", values_to = "n_state") %>% 
+    group_by(time_nebd) %>% 
+    mutate(
+      n_cells = sum(n_state),
+      prop = n_state / n_cells
+    ) %>%
+    ungroup() %>% 
     mutate(state = factor(state, levels = levels(dp$state))) %>% 
     group_by(state) %>%
-    mutate(smooth = runmean(prop, k)) 
+    mutate(smooth = runmean(prop, k)) %>% 
+    ungroup()
 }
 
 pl_proportion_map <- function(dp, k = 5, params) {
