@@ -18,13 +18,25 @@ get_info <- function(path) {
   }
   
   meta <- map_dfr(files, function(fn) {
-    r <- readxl::read_excel(fn,
-      sheet = "metadata",
-      col_names = c("name", "nebd_frame", "cell_line", "condition", "movie", "cell", "date"),
-      col_types = c("text", "numeric", "text", "text", "text", "numeric", "date"),
-      skip = 1,
-      progress = FALSE
-    ) %>% 
+    rex <- tryCatch(
+      readxl::read_excel(fn,
+        sheet = "metadata",
+        col_names = c("name", "nebd_frame", "cell_line", "condition", "movie", "cell", "date"),
+        col_types = c("text", "numeric", "text", "text", "text", "numeric", "date"),
+        skip = 1,
+        progress = FALSE
+      ),
+      error = function(err) {
+        message(str_glue("Error while reading {fn}"))
+        stop("Dead")
+      },
+      warning = function(err) {
+        message(str_glue("Warning while reading {fn}"))
+        stop("Dead")
+      }
+    )
+    
+    r <- rex %>% 
       mutate(path = dirname(fn), info_file = fn)
   }) %>% 
     mutate(
@@ -116,15 +128,15 @@ test_for_files <- function(meta) {
 #'
 #' @param meta Metadata tibble
 #' @param sheets A vector with sheet names to be read from the main cell file.
-#' @param EXTVOL_SHEETS A vector with sheet names for background (extendedvol) files.
+#' @param extvol_sheets A vector with sheet names for background (extendedvol) files.
 #'
 #' @return A list with metadata, cells and track_colours.
 #' @export
-read_cells <- function(info, sheets, EXTVOL_SHEETS) {
+read_cells <- function(info, sheets, extvol_sheets) {
   test_for_files(info$metadata)
   dots <- map(info$metadata$cell_file, ~read_excel_cell(.x, sheets)) %>%
     set_names(info$metadata$cell_id)
-  extvol <- map(info$metadata$background_file, ~read_excel_cell(.x, EXTVOL_SHEETS)) %>%
+  extvol <- map(info$metadata$background_file, ~read_excel_cell(.x, extvol_sheets)) %>%
     set_names(info$metadata$cell_id)
   list(
     metadata = info$metadata,
