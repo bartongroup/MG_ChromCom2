@@ -9,14 +9,69 @@ mod_parse_data_ui <- function(id) {
   tagList(
     actionButton(ns("reload"), "Reload data"),
     hr(),
-    sliderInput(ns("dist.black_lightblue"), "Black/blue limit", value = DEFAULT_PARAMS$dist.black_lightblue, min = 0, max = 5, step = 0.05, ticks = FALSE),
-    sliderInput(ns("black.length"), "Black length", value = DEFAULT_PARAMS$black.length, min = 0, max = 20, step = 1, ticks = FALSE),
-    sliderInput(ns("dist.darkblue_brown"), "Blue/brown limit", value = DEFAULT_PARAMS$dist.darkblue_brown, min = 0, max = 5, step = 0.05, ticks = FALSE),
-    sliderInput(ns("dist.brown_redpink"), "Brown/red-pink limit", value = DEFAULT_PARAMS$dist.brown_redpink, min = 0, max = 1, step = 0.05, ticks = FALSE),
-    sliderInput(ns("dist.red_pink"), "Red/pink limit (D)", value = DEFAULT_PARAMS$dist.red_pink, min = 0, max = 5, step = 0.05, ticks = FALSE),
-    sliderInput(ns("angle.red_pink"), "Red/pink angle (A)", value = DEFAULT_PARAMS$angle.red_pink, min = 0, max = 90, step = 1, ticks = FALSE),
-    selectInput(ns("rule.red_pink"), "Red/pink rule", choices = RED_PINK_RULES),
-    actionButton(ns("submit"), "Submit")
+    sliderInput(
+      inputId = ns("dist.black_lightblue"),
+      label = "Black/blue limit",
+      value = DEFAULT_PARAMS$dist.black_lightblue,
+      min = 0,
+      max = 5,
+      step = 0.05,
+      ticks = FALSE
+    ),
+    sliderInput(
+      inputId = ns("black.length"),
+      label = "Black length",
+      value = DEFAULT_PARAMS$black.length,
+      min = 0,
+      max = 20,
+      step = 1,
+      ticks = FALSE
+    ),
+    sliderInput(
+      inputId = ns("dist.darkblue_brown"),
+      label = "Blue/brown limit",
+      value = DEFAULT_PARAMS$dist.darkblue_brown,
+      min = 0,
+      max = 5,
+      step = 0.05,
+      ticks = FALSE
+    ),
+    sliderInput(
+      inputId = ns("dist.brown_redpink"),
+      label = "Brown/red-pink limit",
+      value = DEFAULT_PARAMS$dist.brown_redpink,
+      min = 0,
+      max = 1,
+      step = 0.05,
+      ticks = FALSE
+    ),
+    sliderInput(
+      inputId = ns("dist.red_pink"),
+      label = "Red/pink limit (D)",
+      value = DEFAULT_PARAMS$dist.red_pink,
+      min = 0,
+      max = 5,
+      step = 0.05,
+      ticks = FALSE
+    ),
+    sliderInput(
+      inputId = ns("angle.red_pink"),
+      label = "Red/pink angle (A)",
+      value = DEFAULT_PARAMS$angle.red_pink,
+      min = 0,
+      max = 90,
+      step = 1,
+      ticks = FALSE
+    ),
+    selectInput(
+      inputId = ns("rule.red_pink"),
+      label = "Red/pink rule",
+      choices = RED_PINK_RULES
+    ),
+    actionButton(
+      inputId = ns("submit"),
+      label = "Submit"
+    )
   )
 }
 
