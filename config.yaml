@@ -1,0 +1,15 @@
+rscript: "Rscript"
+
+ncells: 10000
+ntry: 30
+nbatch: 300
+
+samples:
+  - TT204-Thy_NCAPD2
+  - TT234-Thy_NCAPD2
+
+boot_samples:
+  - TT204-Thy_NCAPD2
+  - TT234-Thy_NCAPD2
+
+
