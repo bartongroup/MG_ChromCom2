@@ -7,9 +7,13 @@ _targets/
 renv/
 temp/
 man
-doc/report_cache/
-doc/report_files/
+doc/*_cache/
+doc/*_files/
+doc/*html
 data
 background_pilot
 voxels
 cache
+bootstraps
+fit_data
+fits

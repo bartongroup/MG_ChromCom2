@@ -19,8 +19,8 @@ my_targets <- function() {
   )
   
   figures <- list(
-    tar_target(fig_colour_ident_cell_1, plot_colour_identification(dat$dotsdat$`TT206-no_siRNA:1_1-1`)),
-    tar_target(fig_colour_timeline_cell_1, plot_colour_timeline(dat, "TT206-no_siRNA:1_1-1")),
+    #tar_target(fig_colour_ident_cell_1, plot_colour_identification(dat$dotsdat$`TT206-no_siRNA:1_1-1`)),
+    #tar_target(fig_colour_timeline_cell_1, plot_colour_timeline(dat, "TT206-no_siRNA:1_1-1")),
     tar_target(fig_angle_distribution, plot_angle_distribution(dat$parsed)),
     tar_target(fig_angle_timeline, plot_angle_timeline(dat$parsed)),
     tar_target(fig_distance_angle, plot_distance_angle(dat$parsed, dat$params)),
@@ -51,7 +51,7 @@ my_targets <- function() {
   
   c(
     read_data,
-    raw_examples,
+    # raw_examples,
     figures,
     figures_per_condition,
     voxels
