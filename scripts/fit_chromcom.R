@@ -94,6 +94,13 @@ option_list <- list(
     help = "Rate k2, P→R occurs after t0 − t1 + t2 with rate k1 [default %default]."
   ),
   make_option(
+    opt_str = c("--free-parameters"),
+    action = "store",
+    default = "tau1,k1,tau2,k2",
+    type = "character",
+    help = "Comma-delimited (no spaces) list of free parameters [default %default]."
+  ),
+  make_option(
     opt_str = c("--timelo"),
     action = "store",
     default = -30,
@@ -167,7 +174,7 @@ fitpars <- ChromComFit::cpars(
   k2 = opt$k2,
   t2ref = 1
 )
-free <- c("tau1", "k1", "k2", "tau2")
+free <- strsplit(opt$`free-parameters`, ",") |> unlist()
 
 fit <- ChromComFit::fit_chr(echr, fitpars, free, ncells = opt$ncells, ntry = opt$ntry, bootstrap = opt$bootstrap,
                             ncores = opt$ncores, time_limits = c(opt$timelo, opt$timeup))

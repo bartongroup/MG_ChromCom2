@@ -8,7 +8,7 @@ date: today
 date-format: "D MMMM YYYY"
 execute:
   echo: false
-  cache: false
+  cache: true
   warning: false
 format:
   html:
@@ -43,7 +43,9 @@ We are looking at data collected recently and processed using [Shiny app](https:
 
 Here we look at two data sets, TT204-Thy_NCAPD2 and TT234-Thy_NCAPD2.
 
-# Data
+# 4 parameters free
+
+The model is calculated from 1000 cells generated according to model parameters. Fitting is done with `optim` function in R using L-BFGS-B method (quasi-Newton or variable metric algorithm, modified by Byrd to allow box constrains). An R package [ChromComFit](https://github.com/bartongroup/MG_ChromComFit) was created for this purpose. The model is described in [this report](http://www.compbio.dundee.ac.uk/user/mgierlinski/chromcom/doc/mod3.html).
 
 ```{r}
 sets <- c("TT204-Thy_NCAPD2", "TT234-Thy_NCAPD2")
@@ -62,6 +64,7 @@ fits <- map(sets, function(s) {
 boots <- readBootstraps(sets, "../bootstraps", root = "boot", nboot = 300, halflife = TRUE)
 ```
 
+## Best-fitting model and data
 
 ```{r}
 #| label: fig-timelines-1
@@ -75,7 +78,9 @@ plot_timelines(fits$`TT204-Thy_NCAPD2`$fit, expdata = fits$`TT204-Thy_NCAPD2`$ec
 plot_timelines(fits$`TT234-Thy_NCAPD2`$fit, expdata = fits$`TT234-Thy_NCAPD2`$echr, smooth = TRUE, k = 3, withpars = TRUE)
 ```
 
-# Bootstraps
+## Bootstraps
+
+To estimate uncertainty of fit parameters a bootstrap was performed, by sampling with replacement from available time points (both model and data).
 
 ```{r}
 #| label: fig-pardist
@@ -86,7 +91,7 @@ plotBootstrapDistributions(boots)
 
 ```{r}
 #| label: fig-parcor
-#| fig-cap: There is a correlation between k2 and half-life 2. Therefore, parameter errors might be inflated.
+#| fig-cap: Best-fitting parameters from individual bootstraps. There is a correlation between k2 and half-life 2. This makes fitting more difficult - fixing one of the parameters would help constraining the model.
 plotBootstrapParamCor(boots)
 ```
 
@@ -96,4 +101,64 @@ plotBootstrapParamCor(boots)
 #| fig-cap: 95% confidence intervals from a bootstrap. Some of the parameters are poorely constrained.
 plotBootstrapCI(boots)
 ```
+
+
+
+
+
+# 3 parameters free
+
+This time tau2 was fixed at 7.
+
+```{r}
+parstr_3 <- "tau1_k1_k2"
+```
+
+
+```{r}
+fits_3 <- map(sets, function(s) {
+  f <- file.path("..", "fits", str_glue("fits_{s}_{parstr_3}.rds"))
+  read_rds(f)
+}) |> 
+  set_names(sets)
+
+
+boots_3 <- readBootstraps(sets, "../bootstraps", root = "boot_3par", nboot = 300, halflife = TRUE)
+```
+
+## Best-fitting model and data
+
+```{r}
+#| label: fig-timelines-3pars-1
+#| fig-cap: Proportion of cells in three states for TT204-Thy_NCAPD2 with 3 parameters. Thin lines represent experimental data, thick lines represent the best-fitting model.
+plot_timelines(fits_3$`TT204-Thy_NCAPD2`$fit, expdata = fits_3$`TT204-Thy_NCAPD2`$echr, smooth = TRUE, k = 3, withpars = TRUE)
+```
+
+```{r}
+#| label: fig-timelines-3pars-2
+#| fig-cap: Proportion of cells in three states for TT234-Thy_NCAPD2 with 3 parameters. Thin lines represent experimental data, thick lines represent the best-fitting model.
+plot_timelines(fits_3$`TT234-Thy_NCAPD2`$fit, expdata = fits_3$`TT234-Thy_NCAPD2`$echr, smooth = TRUE, k = 3, withpars = TRUE)
+```
+
+## Bootstraps
+
+To estimate uncertainty of fit parameters a bootstrap was performed, by sampling with replacement from available time points (both model and data).
+
+```{r}
+#| label: fig-pardist-3pars
+#| fig-cap: Distribution of fit parameters from a bootstrap with 3 parameters.
+plotBootstrapDistributions(boots_3)
+```
+
+
+```{r}
+#| label: fig-parci-3pars
+#| fig-cap: 95% confidence intervals from a bootstrap with 3 parameters. Some of the parameters are poorely constrained.
+plotBootstrapCI(boots_3)
+```
+
+
+
+
+
 
