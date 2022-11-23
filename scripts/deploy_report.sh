@@ -1,1 +1,1 @@
-scp .htaccess doc/report.html www-dev.compbio.dundee.ac.uk:/var/www/html/dag.compbio.dundee.ac.uk/share/marek/chromcom2/
+scp doc/report.html doc/fit_new_data.html cluster:/cluster/gjb_lab/mgierlinski/public_html/chromcom2
