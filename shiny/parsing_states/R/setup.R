@@ -56,3 +56,14 @@ EXTVOL_SHEETS <- c(
 CONDITIONS <- tibble(
   condition = c("NCAPD2_siRNA", "NCAPD3_siRNA", "no_siRNA")
 )
+
+col_con <- tibble::tribble(
+  ~old, ~new,
+  "green", "green",
+  "red", "red",
+  "550", "green",
+  "647", "red"
+)
+
+COLOUR_CONVERSION <- setNames(col_con$new, col_con$old)
+

@@ -7,8 +7,6 @@ mod_parse_data_ui <- function(id) {
   ns <- NS(id)
   
   tagList(
-    actionButton(ns("reload"), "Reload data"),
-    hr(),
     sliderInput(
       inputId = ns("dist.black_lightblue"),
       label = "Black/blue limit",
@@ -71,6 +69,12 @@ mod_parse_data_ui <- function(id) {
     actionButton(
       inputId = ns("submit"),
       label = "Submit"
+    ),
+    hr(),
+    actionButton(
+      inputId = ns("reload"),
+      label = "Reload Excel files",
+      style = "color: #fff; background-color: #cc6600; border-color: #cc3300"
     )
   )
 }
@@ -99,11 +103,11 @@ mod_parse_data <- function(id, state) {
     # React to "reload" button by loading and processing all Excel files
     observeEvent(input$reload, {
       withProgress(message = "Loading Excel files", {
-        info <- get_info(DATA_PATH)
+        info <- ChromComParse::get_info(DATA_PATH, COLOUR_CONVERSION)
         incProgress(1/4)
-        dat <- read_cells(info, CELL_SHEETS, EXTVOL_SHEETS)
+        dat <- ChromComParse::read_cells(info, CELL_SHEETS, EXTVOL_SHEETS)
         incProgress(1/4)
-        dat <- process_raw_data(dat)
+        dat <- ChromComParse::process_raw_data(dat)
         incProgress(1/4)
         write_rds(dat, CACHE_FILE)
         incProgress(1/4)
@@ -116,7 +120,7 @@ mod_parse_data <- function(id, state) {
       req(file.exists(CACHE_FILE))
       params <- params_from_input()
       dat <- read_rds(CACHE_FILE) %>% 
-        parse_xyz_data(params)
+        ChromComParse::parse_xyz_data(params)
       state$data <- dat
       state$is_parsed <- TRUE
     })

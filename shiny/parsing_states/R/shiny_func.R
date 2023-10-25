@@ -16,7 +16,7 @@ initial_cellcons <- function(meta) {
 # Reads Excel files from the folder "data.path", does initial processing of raw
 # data and saves the result in the cache file. Does not return anything useful.
 reload_data <- function(data.path, sheets, extvol_sheets, cache.file) {
-  info <- get_info(data.path)
+  info <- ChromComParse::get_info(data.path, COLOUR_CONVERSION)
   dat <- read_cells(info, sheets, extvol_sheets) %>% 
     process_raw_data()
   write_rds(dat, cache.file)

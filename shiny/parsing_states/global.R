@@ -11,15 +11,14 @@ library(glue)
 library(plotly)
 library(cowplot)
 library(tidyverse)
+library(ChromComParse)
+library(ChromComFit)
 
 options(dplyr.summarise.inform = FALSE)
 
 # ChromCom2 functions
 
 source("R/setup.R")
-source("R/io.R")
-source("R/parse.R")
-source("R/process.R")
 source("R/shiny_func.R")
 
 # App modules

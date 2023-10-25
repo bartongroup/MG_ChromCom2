@@ -11,9 +11,9 @@ ui <- fluidPage(
   
   sidebarLayout(
     sidebarPanel(
-      mod_parse_data_ui("parse_data"),
-      hr(),
       selectInput("cellcon", "Cell line/condition", choices = initial_cells$cellcons),
+      hr(),
+      mod_parse_data_ui("parse_data")
     ),
     
     mainPanel(
