@@ -11,8 +11,12 @@ library(glue)
 library(plotly)
 library(cowplot)
 library(tidyverse)
-library(ChromComParse)
-library(ChromComFit)
+#library(ChromComParse)
+#library(ChromComFit)
+
+files_R <- list.files(c("R", "ChromComParse", "ChroComFit"), pattern = "*.R$", full.names = TRUE)
+sr_ <- sapply(files_R, source)
+
 
 options(dplyr.summarise.inform = FALSE)
 

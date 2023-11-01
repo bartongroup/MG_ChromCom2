@@ -37,7 +37,6 @@ mod_dots <- function(id, state) {
     output$dot_plot <- renderPlotly({
       sel <- get_map_click()
       req(nrow(sel) > 0)
-      
       d <- state$data
       d$xyz %>%
         filter(cellcon == sel$cellcon & mcell == sel$mcell & time_nebd == sel$time_nebd) %>% 
