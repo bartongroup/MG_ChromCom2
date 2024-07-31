@@ -9,7 +9,6 @@ man
 doc/*_cache/
 doc/*_files/
 doc/*html
-data
 background_pilot
 voxels
 cache

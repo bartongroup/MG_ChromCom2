@@ -1,8 +1,3 @@
-# set libpath for our Shiny server
-
-libDir <- "/cluster/gjb_lab/mgierlinski/R_shiny/library/4.1"
-if (dir.exists(libDir)) .libPaths(libDir)
-
 library(shiny)
 library(shinycssloaders)
 library(readxl)
@@ -37,7 +32,8 @@ source("modules/dots.R")
 
 dirs <- c(
   "/cluster/gjb_lab/mgierlinski/projects/chromcom2/data",
-  "/Users/mgierlinski/Projects/ChromCom2/data"
+  "/Users/mgierlinski/Projects/ChromCom2/data",
+  "/cluster/gjb_lab/mgierlinski/ShinyApps/private/chromcom2/data"
 )
 DATA_PATH <- NULL
 for (d in dirs) if (dir.exists(d)) DATA_PATH <- d
