@@ -17,8 +17,8 @@ options(dplyr.summarise.inform = FALSE)
 
 # ChromCom2 functions
 
-source("R/setup.R")
-source("R/shiny_func.R")
+#source("R/setup.R")
+#source("R/shiny_func.R")
 
 # App modules
 
@@ -32,7 +32,7 @@ source("modules/dots.R")
 
 dirs <- c(
   "/cluster/gjb_lab/mgierlinski/projects/chromcom2/data",
-  "/Users/mgierlinski/Projects/ChromCom2/data",
+  "/Users/mgierlinski/Work/Projects/ChromCom2/data",
   "/cluster/gjb_lab/mgierlinski/ShinyApps/private/chromcom2/data"
 )
 DATA_PATH <- NULL
