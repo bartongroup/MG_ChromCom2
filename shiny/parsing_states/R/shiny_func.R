@@ -173,7 +173,7 @@ pl_proportion_map <- function(dp, k = 5, params) {
   ggplot(aes(x = time_nebd, y = smooth, colour = state)) +
     theme_bw() +
     theme(legend.position = "none") +
-    geom_line(size = 1.5) +
+    geom_line(linewidth = 1.5) +
     scale_colour_manual(values = STATE_COLOUR$colour, drop = FALSE) +
     labs(x = "Time since NEBD (min)", y = "Proportion") +
     scale_x_continuous(breaks = seq(-100, 100, 10), limits = time_limits, expand = c(0,0)) +

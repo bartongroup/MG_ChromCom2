@@ -8,7 +8,7 @@ info_cols <- tibble::tribble(
   "cell no.", "cell", "numeric",
   "pair no.", "pair", "numeric",
   "experiment date", "date", "date",
-  "rupture", "rupture", "text",
+  "rupture", "rupture_txt", "text",
   "frame nuclear rupture", "rupture_frame", "numeric"
 )
 
@@ -76,7 +76,8 @@ get_info <- function(path, colour_conversion = c("red" = "red", "green" = "green
       dplyr::mutate(
         rupture_frame = as.integer(rupture_frame),
         path = dirname(fn),
-        info_file = fn
+        info_file = fn,
+        cell = as.character(cell)
       )
   }) |>
     list_rbind() |> 

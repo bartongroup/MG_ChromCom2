@@ -27,7 +27,7 @@ timeline_panel <- function(m, single = FALSE, xmin = as.numeric(NA), xmax = as.n
   ggplot(m, aes(x = Time, y = prop)) +
     theme_bw() +
     theme(panel.grid = element_blank()) +
-    geom_line(aes(colour = Colour), size = 1.5) +
+    geom_line(aes(colour = Colour), linewidth = 1.5) +
     scale_colour_manual(values = c_palette) +
     scale_fill_manual(values = c_palette) +
     theme(legend.position = "none") +
@@ -70,7 +70,7 @@ plot_timelines <- function(chr, k = 5, expdata = NULL, title = NULL, title_size 
   g <- timeline_panel(m, single = TRUE, ...)
   if(!is.null(expdata)) {
     g <- g +
-      geom_step(data = exm, aes(colour = Colour), size = 0.2)
+      geom_step(data = exm, aes(colour = Colour), linewidth = 0.2)
   }
   if(with_ci) {
     g <- g +

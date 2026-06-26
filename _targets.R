@@ -1,5 +1,6 @@
 library(targets)
 library(tarchetypes)
+library(qs2)
 
 packages <- c("glue", "cowplot", "ggrepel", "ggbeeswarm", "ggridges", "readxl", "gganimate", "ggdendro", "dendextend", "tidyverse")
 tar_option_set(packages = packages, format = "qs")
