@@ -7,6 +7,17 @@ mod_parse_data_ui <- function(id) {
   ns <- NS(id)
   
   tagList(
+    shinyjs::useShinyjs(),
+    # For initially disabled download button
+    tags$head(
+      tags$style(HTML("
+        a.shiny-download-link.disabled,
+        a.shiny-download-link[disabled] {
+          pointer-events: none;
+          opacity: 0.65;
+        }
+      "))
+    ),
     splitLayout(
       sliderInput(
         inputId = ns("dist.black_lightblue"),
@@ -73,6 +84,12 @@ mod_parse_data_ui <- function(id) {
       inputId = ns("submit"),
       label = "Submit"
     ),
+    shinyjs::disabled(
+      downloadButton(
+        outputId = ns("download_data"),
+        label = "Download data"
+      )
+    ),
     hr(),
     actionButton(
       inputId = ns("reload"),
@@ -126,7 +143,17 @@ mod_parse_data <- function(id, state) {
         parse_xyz_data(params)
       state$data <- dat
       state$is_parsed <- TRUE
+      shinyjs::enable("download_data")
     })
+
+    output$download_data <- downloadHandler(
+      filename = "distances.csv",
+      content = function(file) {
+        req(state$is_parsed)
+        write_csv(state$data$parsed, file)
+      }
+    )
+
   }
   
   
